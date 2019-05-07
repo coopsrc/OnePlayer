@@ -1,0 +1,22 @@
+include ':player-core'
+include ':player-media'
+include ':player-exo'
+include ':player-exo2'
+include ':player-ffmedia'
+include ':player-ui'
+include ':player-all'
+
+project(':player-core').projectDir = new File(rootDir, 'player/core')
+project(':player-media').projectDir = new File(rootDir, 'player/media')
+project(':player-exo').projectDir = new File(rootDir, 'player/exo')
+project(':player-exo2').projectDir = new File(rootDir, 'player/exo2')
+project(':player-ffmedia').projectDir = new File(rootDir, 'player/ffmedia')
+project(':player-ui').projectDir = new File(rootDir, 'player/ui')
+project(':player-all').projectDir = new File(rootDir, 'player/all')
+
+
+include ':demo-mobile'
+include ':demo-tv'
+
+project(':demo-mobile').projectDir = new File(rootDir, 'demos/mobile')
+project(':demo-tv').projectDir = new File(rootDir, 'demos/tv')

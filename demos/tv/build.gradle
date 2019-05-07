@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+apply from: '../../constants.gradle'
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+
+
+    defaultConfig {
+        applicationId "com.coopsrc.oneplayer.demo.tv"
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+        versionCode project.ext.versionCode
+        versionName project.ext.versionName
+    }
+
+    splits {
+        abi {
+            enable true
+            universalApk true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+
+    implementation "com.android.support:appcompat-v7:$supportVersion"
+    implementation "com.android.support:leanback-v17:$supportVersion"
+    implementation "com.android.support.constraint:constraint-layout:$constraintVersion"
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+
+    implementation project(':player-all')
+    implementation project(':player-ui')
+}
