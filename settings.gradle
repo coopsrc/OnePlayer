@@ -3,6 +3,7 @@ include ':player-media'
 include ':player-exo'
 include ':player-exo2'
 include ':player-ffmedia'
+include ':player-ijkmedia'
 include ':player-ui'
 include ':player-all'
 
@@ -11,6 +12,7 @@ project(':player-media').projectDir = new File(rootDir, 'player/media')
 project(':player-exo').projectDir = new File(rootDir, 'player/exo')
 project(':player-exo2').projectDir = new File(rootDir, 'player/exo2')
 project(':player-ffmedia').projectDir = new File(rootDir, 'player/ffmedia')
+project(':player-ijkmedia').projectDir = new File(rootDir, 'player/ijkmedia')
 project(':player-ui').projectDir = new File(rootDir, 'player/ui')
 project(':player-all').projectDir = new File(rootDir, 'player/all')
 

@@ -1,17 +1,14 @@
 apply plugin: 'com.android.library'
-apply from: '../../constants.gradle'
 
 android {
-    compileSdkVersion project.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
 
     defaultConfig {
-        minSdkVersion project.ext.minSdkVersion
-        targetSdkVersion project.ext.targetSdkVersion
-        versionCode project.ext.versionCode
-        versionName project.ext.versionName
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
 
         externalNativeBuild {
             cmake {
@@ -46,7 +43,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "com.android.support:appcompat-v7:$supportVersion"
+    implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
 
     api project(':player-core')
 }
