@@ -1,5 +1,6 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -10,10 +11,12 @@ import android.view.View;
 import android.widget.Button;
 
 import com.coopsrc.oneplayer.PlayerFactory;
+import com.coopsrc.oneplayer.core.AbsPlayer;
 import com.coopsrc.oneplayer.core.IPlayer;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
 import com.coopsrc.oneplayer.ffmedia.OneFFMedia;
-import com.coopsrc.oneplayer.media.OneMediaPlayer;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener {
     private static final String TAG = "MainActivity";
@@ -27,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private Button mButtonPlayPause;
     private Button mButtonStop;
 
-    private OneMediaPlayer mPlayer;
+    private AbsPlayer mPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +48,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         mButtonStop.setOnClickListener(this);
 
         mSurfaceView.getHolder().addCallback(this);
-        mPlayer = (OneMediaPlayer) PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
         mPlayer.setOnPreparedListener(new IPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(IPlayer player) {
@@ -106,9 +110,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_start:
-                mPlayer.setDataSource(URL);
+                try {
+                    mPlayer.setDataSource(URL);
 //                mPlayer.setDataSource(this, Uri.parse(videoLocal));
-                mPlayer.prepareAsync();
+                    mPlayer.prepareAsync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             case R.id.button_play_pause:
                 if (mPlayer.isPlaying()) {

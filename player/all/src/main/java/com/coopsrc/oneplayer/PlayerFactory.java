@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.StringDef;
 
 import com.coopsrc.oneplayer.core.AbsPlayer;
+import com.coopsrc.oneplayer.ijkmedia.OneIjkPlayer;
 import com.coopsrc.oneplayer.media.OneMediaPlayer;
 
 import java.lang.annotation.Retention;
@@ -45,7 +46,7 @@ public final class PlayerFactory {
             case TypeOne:
                 return new OneMediaPlayer(context);
             case TypeIjk:
-                return new OneMediaPlayer(context);
+                return new OneIjkPlayer(context);
             default:
                 return new OneMediaPlayer(context);
         }
