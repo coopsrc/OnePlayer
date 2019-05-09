@@ -11,5 +11,5 @@ public class OneFFMedia {
         System.loadLibrary("oneplayer");
     }
 
-    public native String stringFromJNI();
+    public static native String ffmpegVersion();
 }
