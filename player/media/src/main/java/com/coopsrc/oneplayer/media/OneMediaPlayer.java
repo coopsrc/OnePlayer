@@ -285,6 +285,11 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
+    public int getAudioSessionId() {
+        return mInternalPlayer.getAudioSessionId();
+    }
+
+    @Override
     public MediaPlayer getInternalPlayer() {
         return mInternalPlayer;
     }

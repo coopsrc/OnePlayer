@@ -1,12 +1,12 @@
 package com.coopsrc.oneplayer.core;
 
 import android.content.Context;
-import android.media.TimedText;
 
 import com.coopsrc.oneplayer.core.misc.ITimedText;
-import com.coopsrc.oneplayer.core.misc.OneTimedText;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author tingkuo
@@ -23,10 +23,18 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
     private OnTimedTextListener mOnTimedTextListener;
     private OnVideoSizeChangedListener mOnVideoSizeChangedListener;
 
+    private final CopyOnWriteArrayList<EventListenerHolder> mListenerHolders;
+    private final ArrayDeque<Runnable> mPendingListenerNotifications;
+
     private final Context mContext;
+
+    private float mBufferedPercentage;
 
     public AbsOnePlayer(Context context) {
         mContext = context;
+
+        mListenerHolders = new CopyOnWriteArrayList<>();
+        mPendingListenerNotifications = new ArrayDeque<>();
     }
 
     public Context getContext() {
@@ -46,6 +54,30 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
         mOnSeekCompleteListener = null;
         mOnTimedTextListener = null;
         mOnVideoSizeChangedListener = null;
+    }
+
+    @Override
+    public void addListener(EventListener listener) {
+        mListenerHolders.addIfAbsent(new EventListenerHolder(listener));
+    }
+
+    @Override
+    public void removeListener(EventListener listener) {
+        for (EventListenerHolder listenerHolder : mListenerHolders) {
+            if (listenerHolder.getListener().equals(listener)) {
+                listenerHolder.release();
+                mListenerHolders.remove(listenerHolder);
+            }
+        }
+    }
+
+    protected float getBufferedPercentage() {
+        return mBufferedPercentage;
+    }
+
+    @Override
+    public long getBufferedPosition() {
+        return (long) (getDuration() * getBufferedPercentage());
     }
 
     @Override
@@ -88,29 +120,60 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
         mOnVideoSizeChangedListener = onVideoSizeChangedListener;
     }
 
-    protected final void notifyOnBufferingUpdate(int percent) {
+    protected final void notifyOnBufferingUpdate(final int percent) {
+        mBufferedPercentage = percent / 100.0f;
         if (mOnBufferingUpdateListener != null) {
             mOnBufferingUpdateListener.onBufferingUpdate(this, percent);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onBufferingUpdate(AbsOnePlayer.this, percent);
+            }
+        });
     }
 
     protected final void notifyOnCompletion() {
         if (mOnCompletionListener != null) {
             mOnCompletionListener.onCompletion(this);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onCompletion(AbsOnePlayer.this);
+            }
+        });
     }
 
-    protected final boolean notifyOnError(int what, int extra) {
+    protected final boolean notifyOnError(final int what, final int extra) {
         if (mOnErrorListener != null) {
-            return mOnErrorListener.onError(this, what, extra);
+            mOnErrorListener.onError(this, what, extra);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onError(AbsOnePlayer.this, what, extra);
+            }
+        });
+
         return false;
     }
 
-    protected final boolean notifyOnInfo(int what, int extra) {
+    protected final boolean notifyOnInfo(final int what, final int extra) {
         if (mOnInfoListener != null) {
-            return mOnInfoListener.onInfo(this, what, extra);
+            mOnInfoListener.onInfo(this, what, extra);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onInfo(AbsOnePlayer.this, what, extra);
+            }
+        });
+
         return false;
     }
 
@@ -118,24 +181,83 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
         if (mOnPreparedListener != null) {
             mOnPreparedListener.onPrepared(this);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onPrepared(AbsOnePlayer.this);
+            }
+        });
     }
 
     protected final void notifyOnSeekComplete() {
         if (mOnSeekCompleteListener != null) {
             mOnSeekCompleteListener.onSeekComplete(this);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onSeekComplete(AbsOnePlayer.this);
+            }
+        });
     }
 
-    protected final void notifyOnTimedText(ITimedText text) {
+    protected final void notifyOnTimedText(final ITimedText text) {
         if (mOnTimedTextListener != null) {
             mOnTimedTextListener.onTimedText(this, text);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onTimedText(AbsOnePlayer.this, text);
+            }
+        });
     }
 
-    protected final void notifyOnVideoSizeChanged(int width, int height) {
+    protected final void notifyOnVideoSizeChanged(final int width, final int height) {
         if (mOnVideoSizeChangedListener != null) {
             mOnVideoSizeChangedListener.onVideoSizeChanged(this, width, height);
         }
+
+        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onVideoSizeChanged(AbsOnePlayer.this, width, height);
+            }
+        });
+    }
+
+    private void notifyEventListeners(final EventListenerHolder.ListenerInvocation listenerInvocation) {
+        final CopyOnWriteArrayList<EventListenerHolder> listenerSnapshot = new CopyOnWriteArrayList<>(mListenerHolders);
+        notifyEventListeners(new Runnable() {
+            @Override
+            public void run() {
+                invokeAll(listenerSnapshot, listenerInvocation);
+            }
+        });
+    }
+
+    private static void invokeAll(CopyOnWriteArrayList<EventListenerHolder> listenerHolders,
+                                  EventListenerHolder.ListenerInvocation listenerInvocation) {
+        for (EventListenerHolder listenerHolder : listenerHolders) {
+            listenerHolder.invoke(listenerInvocation);
+        }
+    }
+
+    private void notifyEventListeners(Runnable listenerNotificationRunnable) {
+        boolean isRunningRecursiveListenerNotification = !mPendingListenerNotifications.isEmpty();
+        mPendingListenerNotifications.addLast(listenerNotificationRunnable);
+        if (isRunningRecursiveListenerNotification) {
+            return;
+        }
+
+        while (!mPendingListenerNotifications.isEmpty()) {
+            mPendingListenerNotifications.peekFirst().run();
+            mPendingListenerNotifications.removeFirst();
+        }
+
     }
 
     protected abstract class PlayerListenerHolder<T extends AbsOnePlayer> {

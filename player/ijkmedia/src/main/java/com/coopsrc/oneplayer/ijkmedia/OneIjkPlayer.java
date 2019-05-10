@@ -297,6 +297,11 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         return OneIjkTrackInfo.fromIjkMediaPlayer(mInternalPlayer);
     }
 
+    @Override
+    public int getAudioSessionId() {
+        return mInternalPlayer.getAudioSessionId();
+    }
+
     private class IjkMediaPlayerListenerHolder extends PlayerListenerHolder<OneIjkPlayer> implements
             IjkMediaPlayer.OnBufferingUpdateListener,
             IjkMediaPlayer.OnCompletionListener,

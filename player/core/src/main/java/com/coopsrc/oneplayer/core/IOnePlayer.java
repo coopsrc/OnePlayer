@@ -22,6 +22,10 @@ import java.util.Map;
  */
 public interface IOnePlayer extends IPlayerInfo {
 
+    void addListener(EventListener listener);
+
+    void removeListener(EventListener listener);
+
     void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
     void setDataSource(Context context, Uri uri, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
@@ -61,6 +65,8 @@ public interface IOnePlayer extends IPlayerInfo {
 
     long getCurrentPosition();
 
+    long getBufferedPosition();
+
     long getDuration();
 
     boolean isPlaying();
@@ -78,6 +84,8 @@ public interface IOnePlayer extends IPlayerInfo {
     boolean isLooping();
 
     ITrackInfo[] getTrackInfo();
+
+    int getAudioSessionId();
 
     void setOnBufferingUpdateListener(OnBufferingUpdateListener onBufferingUpdateListener);
 
@@ -125,5 +133,17 @@ public interface IOnePlayer extends IPlayerInfo {
 
     interface OnVideoSizeChangedListener {
         void onVideoSizeChanged(IOnePlayer player, int width, int height);
+    }
+
+    interface EventListener extends
+            OnBufferingUpdateListener,
+            OnCompletionListener,
+            OnErrorListener,
+            OnInfoListener,
+            OnPreparedListener,
+            OnSeekCompleteListener,
+            OnTimedTextListener,
+            OnVideoSizeChangedListener {
+
     }
 }

@@ -1,33 +1,26 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.View;
-import android.widget.Button;
 
 import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.IOnePlayer;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
 import com.coopsrc.oneplayer.ffmedia.OneFFMedia;
+import com.coopsrc.oneplayer.ui.PlayerView;
 
-import java.io.IOException;
-
-public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private static final String URL = "https://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
     private static final String videoLocal = Environment.getExternalStorageDirectory() + "/Movies/Peru.mp4";
 
-    private SurfaceView mSurfaceView;
-
-    private Button mButtonStart;
-    private Button mButtonPlayPause;
-    private Button mButtonStop;
+    private PlayerView mPlayerView;
 
     private AbsOnePlayer mPlayer;
 
@@ -37,18 +30,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: " + OneFFMedia.ffmpegVersion());
 
-        mSurfaceView = findViewById(R.id.surface_view);
-        mButtonStart = findViewById(R.id.button_start);
-        mButtonPlayPause = findViewById(R.id.button_play_pause);
-        mButtonStop = findViewById(R.id.button_stop);
+        mPlayerView = findViewById(R.id.surface_view);
 
-        mButtonStart.setOnClickListener(this);
-        mButtonPlayPause.setOnClickListener(this);
-        mButtonStop.setOnClickListener(this);
-
-        mSurfaceView.getHolder().addCallback(this);
-//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
         mPlayer.setOnPreparedListener(new IOnePlayer.OnPreparedListener() {
             @Override
             public void onPrepared(IOnePlayer player) {
@@ -78,21 +63,21 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             }
         });
 
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        mPlayer.setDisplay(holder);
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        mPlayerView.setPlayer(mPlayer);
 
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+    protected void onResume() {
+        super.onResume();
 
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mPlayerView.setVideoPath(URL);
+//                mPlayerView.setVideoURI(Uri.parse(videoLocal));
+            }
+        }, 500);
     }
 
     @Override
@@ -105,28 +90,4 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         mPlayer.release();
     }
 
-    @Override
-    public void onClick(View v) {
-        try {
-            switch (v.getId()) {
-                case R.id.button_start:
-                    mPlayer.setDataSource(URL);
-//                mPlayer.setDataSource(this, Uri.parse(videoLocal));
-                    mPlayer.prepareAsync();
-                    break;
-                case R.id.button_play_pause:
-                    if (mPlayer.isPlaying()) {
-                        mPlayer.pause();
-                    } else {
-                        mPlayer.start();
-                    }
-                    break;
-                case R.id.button_stop:
-                    mPlayer.stop();
-                    break;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
