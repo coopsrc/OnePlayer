@@ -3,7 +3,7 @@ package com.coopsrc.oneplayer;
 import android.content.Context;
 import android.support.annotation.StringDef;
 
-import com.coopsrc.oneplayer.core.AbsPlayer;
+import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.ijkmedia.OneIjkPlayer;
 import com.coopsrc.oneplayer.media.OneMediaPlayer;
 
@@ -35,7 +35,7 @@ public final class PlayerFactory {
     public @interface PlayerType {
     }
 
-    public static AbsPlayer createPlayer(Context context, @PlayerType String type) {
+    public static AbsOnePlayer createPlayer(Context context, @PlayerType String type) {
         switch (type) {
             case TypeMedia:
                 return new OneMediaPlayer(context);

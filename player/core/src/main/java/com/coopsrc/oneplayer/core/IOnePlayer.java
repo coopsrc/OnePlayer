@@ -1,12 +1,15 @@
 package com.coopsrc.oneplayer.core;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.media.MediaDataSource;
-import android.media.TimedText;
 import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+
+import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
+import com.coopsrc.oneplayer.core.misc.ITimedText;
+import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -17,7 +20,7 @@ import java.util.Map;
  * <p>
  * Date: 2019-05-09 15:18
  */
-public interface IPlayer extends IPlayerInfo {
+public interface IOnePlayer extends IPlayerInfo {
 
     void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
@@ -25,15 +28,12 @@ public interface IPlayer extends IPlayerInfo {
 
     void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
-    void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
-
-    void setDataSource(AssetFileDescriptor afd) throws IOException, IllegalArgumentException, IllegalStateException;
-
     void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException;
 
     void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException;
 
-    void setDataSource(MediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException;
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException;
 
     void setDisplay(SurfaceHolder holder);
 
@@ -41,15 +41,11 @@ public interface IPlayer extends IPlayerInfo {
 
     void prepareAsync() throws IllegalStateException;
 
-    void prepare() throws IOException, IllegalStateException;
-
     void start() throws IllegalStateException;
 
     void stop() throws IllegalStateException;
 
     void pause() throws IllegalStateException;
-
-    void replay();
 
     boolean release();
 
@@ -81,6 +77,8 @@ public interface IPlayer extends IPlayerInfo {
 
     boolean isLooping();
 
+    ITrackInfo[] getTrackInfo();
+
     void setOnBufferingUpdateListener(OnBufferingUpdateListener onBufferingUpdateListener);
 
     void setOnCompletionListener(OnCompletionListener onCompletionListener);
@@ -98,34 +96,34 @@ public interface IPlayer extends IPlayerInfo {
     void setOnVideoSizeChangedListener(OnVideoSizeChangedListener onVideoSizeChangedListener);
 
     interface OnBufferingUpdateListener {
-        void onBufferingUpdate(IPlayer player, int percent);
+        void onBufferingUpdate(IOnePlayer player, int percent);
     }
 
     interface OnCompletionListener {
-        void onCompletion(IPlayer player);
+        void onCompletion(IOnePlayer player);
     }
 
     interface OnErrorListener {
-        boolean onError(IPlayer player, int what, int extra);
+        boolean onError(IOnePlayer player, int what, int extra);
     }
 
     interface OnInfoListener {
-        boolean onInfo(IPlayer player, int what, int extra);
+        boolean onInfo(IOnePlayer player, int what, int extra);
     }
 
     interface OnPreparedListener {
-        void onPrepared(IPlayer player);
+        void onPrepared(IOnePlayer player);
     }
 
     interface OnSeekCompleteListener {
-        void onSeekComplete(IPlayer player);
+        void onSeekComplete(IOnePlayer player);
     }
 
     interface OnTimedTextListener {
-        void onTimedText(IPlayer player, TimedText text);
+        void onTimedText(IOnePlayer player, ITimedText text);
     }
 
     interface OnVideoSizeChangedListener {
-        void onVideoSizeChanged(IPlayer player, int width, int height);
+        void onVideoSizeChanged(IOnePlayer player, int width, int height);
     }
 }

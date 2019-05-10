@@ -2,9 +2,7 @@ package com.coopsrc.oneplayer.media;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
-import android.media.MediaDataSource;
 import android.media.MediaPlayer;
 import android.media.TimedText;
 import android.net.Uri;
@@ -12,8 +10,13 @@ import android.os.Build;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
-import com.coopsrc.oneplayer.core.AbsPlayer;
+import com.coopsrc.oneplayer.core.AbsOnePlayer;
+import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
+import com.coopsrc.oneplayer.core.misc.ITrackInfo;
+import com.coopsrc.oneplayer.core.misc.OneTimedText;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
+import com.coopsrc.oneplayer.media.misc.AndroidMediaDataSource;
+import com.coopsrc.oneplayer.media.misc.AndroidTrackInfo;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -24,7 +27,7 @@ import java.util.Map;
  * <p>
  * Date: 2019-05-07 17:16
  */
-public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
+public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     private static final String TAG = "OneMediaPlayer";
 
     private final MediaPlayer mInternalPlayer;
@@ -63,22 +66,9 @@ public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
     }
 
     @Override
-    public void setDataSource(String path) {
+    public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         if (mInternalPlayer != null) {
-            try {
-                mInternalPlayer.setDataSource(path);
-            } catch (IOException e) {
-                e.printStackTrace();
-                LogUtils.e(TAG, e.getMessage());
-            }
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.N)
-    @Override
-    public void setDataSource(AssetFileDescriptor afd) throws IOException, IllegalArgumentException, IllegalStateException {
-        if (mInternalPlayer != null) {
-            mInternalPlayer.setDataSource(afd);
+            mInternalPlayer.setDataSource(path);
         }
     }
 
@@ -98,9 +88,9 @@ public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
-    public void setDataSource(MediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
+    public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
         if (mInternalPlayer != null) {
-            mInternalPlayer.setDataSource(dataSource);
+            mInternalPlayer.setDataSource(new AndroidMediaDataSource(dataSource));
         }
     }
 
@@ -130,13 +120,6 @@ public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
     }
 
     @Override
-    public void prepare() throws IOException, IllegalStateException {
-        if (mInternalPlayer != null) {
-            mInternalPlayer.prepare();
-        }
-    }
-
-    @Override
     public void start() throws IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.start();
@@ -155,11 +138,6 @@ public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
         if (mInternalPlayer != null) {
             mInternalPlayer.pause();
         }
-    }
-
-    @Override
-    public void replay() {
-
     }
 
     @Override
@@ -302,6 +280,11 @@ public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
     }
 
     @Override
+    public ITrackInfo[] getTrackInfo() {
+        return AndroidTrackInfo.fromMediaPlayer(mInternalPlayer);
+    }
+
+    @Override
     public MediaPlayer getInternalPlayer() {
         return mInternalPlayer;
     }
@@ -379,8 +362,8 @@ public final class OneMediaPlayer extends AbsPlayer<MediaPlayer> {
 
         @Override
         public void onTimedText(MediaPlayer mp, TimedText text) {
-            if (getPlayer() != null) {
-                notifyOnTimedText(text);
+            if (getPlayer() != null && text != null) {
+                notifyOnTimedText(new OneTimedText(text.getBounds(), text.getText()));
             }
         }
 

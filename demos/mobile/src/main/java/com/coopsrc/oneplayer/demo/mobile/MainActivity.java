@@ -1,6 +1,5 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -11,8 +10,8 @@ import android.view.View;
 import android.widget.Button;
 
 import com.coopsrc.oneplayer.PlayerFactory;
-import com.coopsrc.oneplayer.core.AbsPlayer;
-import com.coopsrc.oneplayer.core.IPlayer;
+import com.coopsrc.oneplayer.core.AbsOnePlayer;
+import com.coopsrc.oneplayer.core.IOnePlayer;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
 import com.coopsrc.oneplayer.ffmedia.OneFFMedia;
 
@@ -30,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private Button mButtonPlayPause;
     private Button mButtonStop;
 
-    private AbsPlayer mPlayer;
+    private AbsOnePlayer mPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,30 +49,30 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         mSurfaceView.getHolder().addCallback(this);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
         mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
-        mPlayer.setOnPreparedListener(new IPlayer.OnPreparedListener() {
+        mPlayer.setOnPreparedListener(new IOnePlayer.OnPreparedListener() {
             @Override
-            public void onPrepared(IPlayer player) {
+            public void onPrepared(IOnePlayer player) {
                 Log.i(TAG, "onPrepared: ");
                 mPlayer.start();
                 mPlayer.setLooping(true);
             }
         });
-        mPlayer.setOnInfoListener(new IPlayer.OnInfoListener() {
+        mPlayer.setOnInfoListener(new IOnePlayer.OnInfoListener() {
             @Override
-            public boolean onInfo(IPlayer player, int what, int extra) {
+            public boolean onInfo(IOnePlayer player, int what, int extra) {
                 LogUtils.i(TAG, "onInfo: what=%s, extra=%s", what, extra);
                 return false;
             }
         });
-        mPlayer.setOnBufferingUpdateListener(new IPlayer.OnBufferingUpdateListener() {
+        mPlayer.setOnBufferingUpdateListener(new IOnePlayer.OnBufferingUpdateListener() {
             @Override
-            public void onBufferingUpdate(IPlayer player, int percent) {
+            public void onBufferingUpdate(IOnePlayer player, int percent) {
                 LogUtils.i(TAG, "onBufferingUpdate: percent=%s", percent);
             }
         });
-        mPlayer.setOnErrorListener(new IPlayer.OnErrorListener() {
+        mPlayer.setOnErrorListener(new IOnePlayer.OnErrorListener() {
             @Override
-            public boolean onError(IPlayer player, int what, int extra) {
+            public boolean onError(IOnePlayer player, int what, int extra) {
                 LogUtils.i(TAG, "onError: what=%s, extra=%s", what, extra);
                 return false;
             }
@@ -108,26 +107,26 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.button_start:
-                try {
+        try {
+            switch (v.getId()) {
+                case R.id.button_start:
                     mPlayer.setDataSource(URL);
 //                mPlayer.setDataSource(this, Uri.parse(videoLocal));
                     mPlayer.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case R.id.button_play_pause:
-                if (mPlayer.isPlaying()) {
-                    mPlayer.pause();
-                } else {
-                    mPlayer.start();
-                }
-                break;
-            case R.id.button_stop:
-                mPlayer.stop();
-                break;
+                    break;
+                case R.id.button_play_pause:
+                    if (mPlayer.isPlaying()) {
+                        mPlayer.pause();
+                    } else {
+                        mPlayer.start();
+                    }
+                    break;
+                case R.id.button_stop:
+                    mPlayer.stop();
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

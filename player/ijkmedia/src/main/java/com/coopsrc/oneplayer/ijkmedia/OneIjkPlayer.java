@@ -1,17 +1,18 @@
 package com.coopsrc.oneplayer.ijkmedia;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
-import android.media.MediaDataSource;
 import android.net.Uri;
-import android.os.Build;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
-import com.coopsrc.oneplayer.core.AbsPlayer;
+import com.coopsrc.oneplayer.core.AbsOnePlayer;
+import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
+import com.coopsrc.oneplayer.core.misc.ITrackInfo;
+import com.coopsrc.oneplayer.core.misc.OneTimedText;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
+import com.coopsrc.oneplayer.ijkmedia.misc.IjkMediaDataSource;
+import com.coopsrc.oneplayer.ijkmedia.misc.OneIjkTrackInfo;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -20,14 +21,13 @@ import java.util.Map;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkTimedText;
-import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
 
 /**
  * @author Tingkuo
  * <p>
  * Date: 2019-05-09 23:19
  */
-public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
+public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     private static final String TAG = "OneIjkPlayer";
 
     private final IjkMediaPlayer mInternalPlayer;
@@ -93,13 +93,6 @@ public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.N)
-    @Override
-    public void setDataSource(AssetFileDescriptor afd) throws IOException, IllegalArgumentException, IllegalStateException {
-        if (mInternalPlayer != null) {
-//            mInternalPlayer.setDataSource(afd);
-        }
-    }
 
     @Override
     public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
@@ -115,26 +108,10 @@ public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     @Override
-    public void setDataSource(final MediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
+    public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
         if (mInternalPlayer != null) {
-            mInternalPlayer.setDataSource(new IMediaDataSource() {
-                @Override
-                public int readAt(long position, byte[] buffer, int offset, int size) throws IOException {
-                    return dataSource.readAt(position, buffer, offset, size);
-                }
-
-                @Override
-                public long getSize() throws IOException {
-                    return dataSource.getSize();
-                }
-
-                @Override
-                public void close() throws IOException {
-                    dataSource.close();
-                }
-            });
+            mInternalPlayer.setDataSource(new IjkMediaDataSource(dataSource));
         }
     }
 
@@ -164,13 +141,6 @@ public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
     }
 
     @Override
-    public void prepare() throws IOException, IllegalStateException {
-        if (mInternalPlayer != null) {
-//            mInternalPlayer.prepareAsync();
-        }
-    }
-
-    @Override
     public void start() throws IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.start();
@@ -189,11 +159,6 @@ public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
         if (mInternalPlayer != null) {
             mInternalPlayer.pause();
         }
-    }
-
-    @Override
-    public void replay() {
-
     }
 
     @Override
@@ -327,6 +292,11 @@ public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
         return false;
     }
 
+    @Override
+    public ITrackInfo[] getTrackInfo() {
+        return OneIjkTrackInfo.fromIjkMediaPlayer(mInternalPlayer);
+    }
+
     private class IjkMediaPlayerListenerHolder extends PlayerListenerHolder<OneIjkPlayer> implements
             IjkMediaPlayer.OnBufferingUpdateListener,
             IjkMediaPlayer.OnCompletionListener,
@@ -389,7 +359,7 @@ public class OneIjkPlayer extends AbsPlayer<IjkMediaPlayer> {
         @Override
         public void onTimedText(IMediaPlayer mp, IjkTimedText text) {
             if (getPlayer() != null) {
-//                notifyOnTimedText(text);
+                notifyOnTimedText(new OneTimedText(text.getBounds(), text.getText()));
             }
         }
 
