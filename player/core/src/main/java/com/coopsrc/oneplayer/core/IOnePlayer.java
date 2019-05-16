@@ -57,7 +57,7 @@ public interface IOnePlayer extends IPlayerInfo {
 
     void seekTo(long msec, int mode);
 
-    void seekTo(int msec) throws IllegalStateException;
+    void seekTo(long msec) throws IllegalStateException;
 
     void setVolume(float volume);
 

@@ -27,7 +27,7 @@ public class PlayerUtils {
             }
         }
 
-        LogUtils.i(TAG, "formatPlayingTime: timeStamp=" + timeStamp + " => " + timeStr);
+        LogUtils.v(TAG, "formatPlayingTime: timeStamp=" + timeStamp + " => " + timeStr);
 
         return timeStr;
     }

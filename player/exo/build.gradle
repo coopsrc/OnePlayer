@@ -27,4 +27,6 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
 
     api project(':player-core')
+
+    implementation 'com.google.android.exoplayer:exoplayer:r1.5.16'
 }

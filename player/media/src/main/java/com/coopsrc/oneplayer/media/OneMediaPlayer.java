@@ -173,9 +173,9 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
-    public void seekTo(int msec) throws IllegalStateException {
+    public void seekTo(long msec) throws IllegalStateException {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo(msec);
+            mInternalPlayer.seekTo((int) msec);
         }
     }
 

@@ -118,7 +118,7 @@ public class MediaPlayerProxy implements IOnePlayer {
     }
 
     @Override
-    public void seekTo(int msec) throws IllegalStateException {
+    public void seekTo(long msec) throws IllegalStateException {
         mBackendPlayer.seekTo(msec);
     }
 
