@@ -41,6 +41,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         synchronized (mLock) {
             mInternalPlayer = new MediaPlayer();
             mInternalPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mInternalPlayer.setScreenOnWhilePlaying(true);
         }
         mInternalAdapterListener = new MediaPlayerListenerHolder(this);
         attachInternalListeners();

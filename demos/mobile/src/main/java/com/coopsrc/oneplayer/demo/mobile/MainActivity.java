@@ -1,6 +1,5 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -23,10 +22,16 @@ public class MainActivity extends AppCompatActivity {
     private static final String URL = "https://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
     private static final String videoLocal = Environment.getExternalStorageDirectory() + "/Movies/Peru.mp4";
 
-    private static final String DASH = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_hd.mpd";
+    private static final String DASH_HD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_hd.mpd";
+    private static final String DASH_UHD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_uhd.mpd";
     private static final String DASH_SECURE = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd";
     private Map<String, String> dashHeaders = new HashMap<>();
 
+    private static final String SS = "https://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism";
+
+    private static final String HLS = "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8";
+
+    private static final String FLV = "https://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0";
 
     private PlayerView mPlayerView;
 
@@ -38,11 +43,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: " + OneFFMedia.ffmpegVersion());
 
-        mPlayerView = findViewById(R.id.surface_view);
+        mPlayerView = findViewById(R.id.player_view);
 
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
         mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
+
+        mPlayer.setScreenOnWhilePlaying(true);
         mPlayer.setOnPreparedListener(new IOnePlayer.OnPreparedListener() {
             @Override
             public void onPrepared(IOnePlayer player) {
@@ -88,12 +95,21 @@ public class MainActivity extends AppCompatActivity {
 //                mPlayerView.setVideoURI(Uri.parse(videoLocal));
 
                 // dash h264 mp4
-//                mPlayerView.setVideoPath(DASH);
+//                mPlayerView.setVideoPath(DASH_HD);
+
+                // ss
+//                mPlayerView.setVideoPath(SS);
+
+                // hls
+//                mPlayerView.setVideoPath(HLS);
+
+                // 360
+                mPlayerView.setVideoPath(FLV);
 
                 // dash h264 mp4 drm
-                dashHeaders.put("contentId", "");
-                dashHeaders.put("provider", "widevine_test");
-                mPlayerView.setVideoURI(Uri.parse(DASH_SECURE), dashHeaders);
+//                dashHeaders.put("contentId", "");
+//                dashHeaders.put("provider", "widevine_test");
+//                mPlayerView.setVideoURI(Uri.parse(DASH_SECURE), dashHeaders);
             }
         }, 500);
     }

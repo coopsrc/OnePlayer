@@ -40,146 +40,146 @@ import java.util.List;
  */
 public class HlsRendererBuilder implements DemoPlayer.RendererBuilder {
 
-  private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
-  private static final int MAIN_BUFFER_SEGMENTS = 254;
-  private static final int AUDIO_BUFFER_SEGMENTS = 54;
-  private static final int TEXT_BUFFER_SEGMENTS = 2;
-
-  private final Context context;
-  private final String userAgent;
-  private final String url;
-
-  private AsyncRendererBuilder currentAsyncBuilder;
-
-  public HlsRendererBuilder(Context context, String userAgent, String url) {
-    this.context = context;
-    this.userAgent = userAgent;
-    this.url = url;
-  }
-
-  @Override
-  public void buildRenderers(DemoPlayer player) {
-    currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player);
-    currentAsyncBuilder.init();
-  }
-
-  @Override
-  public void cancel() {
-    if (currentAsyncBuilder != null) {
-      currentAsyncBuilder.cancel();
-      currentAsyncBuilder = null;
-    }
-  }
-
-  private static final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
+    private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
+    private static final int MAIN_BUFFER_SEGMENTS = 254;
+    private static final int AUDIO_BUFFER_SEGMENTS = 54;
+    private static final int TEXT_BUFFER_SEGMENTS = 2;
 
     private final Context context;
     private final String userAgent;
-    private final DemoPlayer player;
-    private final ManifestFetcher<HlsPlaylist> playlistFetcher;
+    private final String url;
 
-    private boolean canceled;
+    private AsyncRendererBuilder currentAsyncBuilder;
 
-    public AsyncRendererBuilder(Context context, String userAgent, String url, DemoPlayer player) {
-      this.context = context;
-      this.userAgent = userAgent;
-      this.player = player;
-      HlsPlaylistParser parser = new HlsPlaylistParser();
-      playlistFetcher = new ManifestFetcher<>(url, new DefaultUriDataSource(context, userAgent),
-          parser);
+    public HlsRendererBuilder(Context context, String userAgent, String url) {
+        this.context = context;
+        this.userAgent = userAgent;
+        this.url = url;
     }
 
-    public void init() {
-      playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
+    @Override
+    public void buildRenderers(DemoPlayer player) {
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player);
+        currentAsyncBuilder.init();
     }
 
+    @Override
     public void cancel() {
-      canceled = true;
+        if (currentAsyncBuilder != null) {
+            currentAsyncBuilder.cancel();
+            currentAsyncBuilder = null;
+        }
     }
 
-    @Override
-    public void onSingleManifestError(IOException e) {
-      if (canceled) {
-        return;
-      }
+    private static final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
 
-      player.onRenderersError(e);
+        private final Context context;
+        private final String userAgent;
+        private final DemoPlayer player;
+        private final ManifestFetcher<HlsPlaylist> playlistFetcher;
+
+        private boolean canceled;
+
+        public AsyncRendererBuilder(Context context, String userAgent, String url, DemoPlayer player) {
+            this.context = context;
+            this.userAgent = userAgent;
+            this.player = player;
+            HlsPlaylistParser parser = new HlsPlaylistParser();
+            playlistFetcher = new ManifestFetcher<>(url, new DefaultUriDataSource(context, userAgent),
+                    parser);
+        }
+
+        public void init() {
+            playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
+        }
+
+        public void cancel() {
+            canceled = true;
+        }
+
+        @Override
+        public void onSingleManifestError(IOException e) {
+            if (canceled) {
+                return;
+            }
+
+            player.onRenderersError(e);
+        }
+
+        @Override
+        public void onSingleManifest(HlsPlaylist manifest) {
+            if (canceled) {
+                return;
+            }
+
+            Handler mainHandler = player.getMainHandler();
+            LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
+            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+            PtsTimestampAdjusterProvider timestampAdjusterProvider = new PtsTimestampAdjusterProvider();
+
+            boolean haveSubtitles = false;
+            boolean haveAudios = false;
+            if (manifest instanceof HlsMasterPlaylist) {
+                HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) manifest;
+                haveSubtitles = !masterPlaylist.subtitles.isEmpty();
+                haveAudios = !masterPlaylist.audios.isEmpty();
+            }
+
+            // Build the video/id3 renderers.
+            DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            HlsChunkSource chunkSource = new HlsChunkSource(true /* isMaster */, dataSource, manifest,
+                    DefaultHlsTrackSelector.newDefaultInstance(context), bandwidthMeter,
+                    timestampAdjusterProvider);
+            HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
+                    MAIN_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, DemoPlayer.TYPE_VIDEO);
+            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context,
+                    sampleSource, MediaCodecSelector.DEFAULT, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
+                    5000, mainHandler, player, 50);
+            MetadataTrackRenderer<List<Id3Frame>> id3Renderer = new MetadataTrackRenderer<>(
+                    sampleSource, new Id3Parser(), player, mainHandler.getLooper());
+
+            // Build the audio renderer.
+            MediaCodecAudioTrackRenderer audioRenderer;
+            if (haveAudios) {
+                DataSource audioDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+                HlsChunkSource audioChunkSource = new HlsChunkSource(false /* isMaster */, audioDataSource,
+                        manifest, DefaultHlsTrackSelector.newAudioInstance(), bandwidthMeter,
+                        timestampAdjusterProvider);
+                HlsSampleSource audioSampleSource = new HlsSampleSource(audioChunkSource, loadControl,
+                        AUDIO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
+                        DemoPlayer.TYPE_AUDIO);
+                audioRenderer = new MediaCodecAudioTrackRenderer(
+                        new SampleSource[]{sampleSource, audioSampleSource}, MediaCodecSelector.DEFAULT, null,
+                        true, player.getMainHandler(), player, AudioCapabilities.getCapabilities(context),
+                        AudioManager.STREAM_MUSIC);
+            } else {
+                audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource,
+                        MediaCodecSelector.DEFAULT, null, true, player.getMainHandler(), player,
+                        AudioCapabilities.getCapabilities(context), AudioManager.STREAM_MUSIC);
+            }
+
+            // Build the text renderer.
+            TrackRenderer textRenderer;
+            if (haveSubtitles) {
+                DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+                HlsChunkSource textChunkSource = new HlsChunkSource(false /* isMaster */, textDataSource,
+                        manifest, DefaultHlsTrackSelector.newSubtitleInstance(), bandwidthMeter,
+                        timestampAdjusterProvider);
+                HlsSampleSource textSampleSource = new HlsSampleSource(textChunkSource, loadControl,
+                        TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, DemoPlayer.TYPE_TEXT);
+                textRenderer = new TextTrackRenderer(textSampleSource, player, mainHandler.getLooper());
+            } else {
+                textRenderer = new Eia608TrackRenderer(sampleSource, player, mainHandler.getLooper());
+            }
+
+            TrackRenderer[] renderers = new TrackRenderer[DemoPlayer.RENDERER_COUNT];
+            renderers[DemoPlayer.TYPE_VIDEO] = videoRenderer;
+            renderers[DemoPlayer.TYPE_AUDIO] = audioRenderer;
+            renderers[DemoPlayer.TYPE_METADATA] = id3Renderer;
+            renderers[DemoPlayer.TYPE_TEXT] = textRenderer;
+            player.onRenderers(renderers, bandwidthMeter);
+        }
+
     }
-
-    @Override
-    public void onSingleManifest(HlsPlaylist manifest) {
-      if (canceled) {
-        return;
-      }
-
-      Handler mainHandler = player.getMainHandler();
-      LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
-      DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-      PtsTimestampAdjusterProvider timestampAdjusterProvider = new PtsTimestampAdjusterProvider();
-
-      boolean haveSubtitles = false;
-      boolean haveAudios = false;
-      if (manifest instanceof HlsMasterPlaylist) {
-        HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) manifest;
-        haveSubtitles = !masterPlaylist.subtitles.isEmpty();
-        haveAudios = !masterPlaylist.audios.isEmpty();
-      }
-
-      // Build the video/id3 renderers.
-      DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-      HlsChunkSource chunkSource = new HlsChunkSource(true /* isMaster */, dataSource, manifest,
-          DefaultHlsTrackSelector.newDefaultInstance(context), bandwidthMeter,
-          timestampAdjusterProvider);
-      HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
-          MAIN_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, DemoPlayer.TYPE_VIDEO);
-      MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context,
-          sampleSource, MediaCodecSelector.DEFAULT, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
-          5000, mainHandler, player, 50);
-      MetadataTrackRenderer<List<Id3Frame>> id3Renderer = new MetadataTrackRenderer<>(
-          sampleSource, new Id3Parser(), player, mainHandler.getLooper());
-
-      // Build the audio renderer.
-      MediaCodecAudioTrackRenderer audioRenderer;
-      if (haveAudios) {
-        DataSource audioDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-        HlsChunkSource audioChunkSource = new HlsChunkSource(false /* isMaster */, audioDataSource,
-            manifest, DefaultHlsTrackSelector.newAudioInstance(), bandwidthMeter,
-            timestampAdjusterProvider);
-        HlsSampleSource audioSampleSource = new HlsSampleSource(audioChunkSource, loadControl,
-            AUDIO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-            DemoPlayer.TYPE_AUDIO);
-        audioRenderer = new MediaCodecAudioTrackRenderer(
-            new SampleSource[] {sampleSource, audioSampleSource}, MediaCodecSelector.DEFAULT, null,
-            true, player.getMainHandler(), player, AudioCapabilities.getCapabilities(context),
-            AudioManager.STREAM_MUSIC);
-      } else {
-        audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource,
-            MediaCodecSelector.DEFAULT, null, true, player.getMainHandler(), player,
-            AudioCapabilities.getCapabilities(context), AudioManager.STREAM_MUSIC);
-      }
-
-      // Build the text renderer.
-      TrackRenderer textRenderer;
-      if (haveSubtitles) {
-        DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-        HlsChunkSource textChunkSource = new HlsChunkSource(false /* isMaster */, textDataSource,
-            manifest, DefaultHlsTrackSelector.newSubtitleInstance(), bandwidthMeter,
-            timestampAdjusterProvider);
-        HlsSampleSource textSampleSource = new HlsSampleSource(textChunkSource, loadControl,
-            TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, DemoPlayer.TYPE_TEXT);
-        textRenderer = new TextTrackRenderer(textSampleSource, player, mainHandler.getLooper());
-      } else {
-        textRenderer = new Eia608TrackRenderer(sampleSource, player, mainHandler.getLooper());
-      }
-
-      TrackRenderer[] renderers = new TrackRenderer[DemoPlayer.RENDERER_COUNT];
-      renderers[DemoPlayer.TYPE_VIDEO] = videoRenderer;
-      renderers[DemoPlayer.TYPE_AUDIO] = audioRenderer;
-      renderers[DemoPlayer.TYPE_METADATA] = id3Renderer;
-      renderers[DemoPlayer.TYPE_TEXT] = textRenderer;
-      player.onRenderers(renderers, bandwidthMeter);
-    }
-
-  }
 
 }

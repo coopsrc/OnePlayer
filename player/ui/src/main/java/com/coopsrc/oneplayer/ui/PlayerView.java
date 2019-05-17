@@ -35,6 +35,8 @@ public class PlayerView extends ConstraintLayout implements TextureView.SurfaceT
     @Nullable
     private final TextureView textureView;
     @Nullable
+    private final View bufferingView;
+    @Nullable
     private final PlayerControlView controller;
 
     private SurfaceTexture mSurfaceTexture;
@@ -78,6 +80,12 @@ public class PlayerView extends ConstraintLayout implements TextureView.SurfaceT
         surfacePlaceholderParent.addView(textureView, surfaceIndex);
         textureView.setSurfaceTextureListener(this);
 
+
+        // Buffering view.
+        bufferingView = findViewById(R.id.progress_buffering);
+        if (bufferingView != null) {
+            bufferingView.setVisibility(View.GONE);
+        }
 
         controller = new PlayerControlView(context, null, 0);
         View controllerPlaceholder = findViewById(R.id.player_controller_placeholder);
@@ -216,6 +224,18 @@ public class PlayerView extends ConstraintLayout implements TextureView.SurfaceT
 
         @Override
         public boolean onInfo(IOnePlayer player, int what, int extra) {
+            switch (what) {
+                case IOnePlayer.MEDIA_INFO_BUFFERING_START:
+                    if (bufferingView!=null){
+                        bufferingView.setVisibility(VISIBLE);
+                    }
+                    break;
+                case IOnePlayer.MEDIA_INFO_BUFFERING_END:
+                    if (bufferingView!=null){
+                        bufferingView.setVisibility(GONE);
+                    }
+                    break;
+            }
             return false;
         }
 

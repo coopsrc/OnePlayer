@@ -138,8 +138,13 @@ public class MediaPlayerProxy implements IOnePlayer {
     }
 
     @Override
-    public long getBufferedPosition() {
-        return mBackendPlayer.getBufferedPosition();
+    public int getCurrentPercentage() {
+        return mBackendPlayer.getCurrentPercentage();
+    }
+
+    @Override
+    public int getBufferedPercentage() {
+        return mBackendPlayer.getBufferedPercentage();
     }
 
     @Override

@@ -7,7 +7,9 @@
     <color name="transparent">#00000000</color>
     <color name="white">#FFFFFF</color>
 
+    <color name="progress_bar_background">#80000000</color>
+    <color name="progressBackground">#EEEEEE</color>
     <color name="progressColor">@color/colorAccent</color>
-    <color name="secondaryProgressColor">#66D81B60</color>
+    <color name="secondaryProgressColor">#EE8080</color>
 
 </resources>

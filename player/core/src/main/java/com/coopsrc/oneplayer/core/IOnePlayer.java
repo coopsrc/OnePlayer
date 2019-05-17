@@ -65,7 +65,9 @@ public interface IOnePlayer extends IPlayerInfo {
 
     long getCurrentPosition();
 
-    long getBufferedPosition();
+    int getCurrentPercentage();
+
+    int getBufferedPercentage();
 
     long getDuration();
 

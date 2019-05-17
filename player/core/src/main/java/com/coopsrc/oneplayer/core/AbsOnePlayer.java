@@ -28,7 +28,7 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
 
     private final Context mContext;
 
-    private float mBufferedPercentage;
+    private int mBufferedPercentage;
 
     public AbsOnePlayer(Context context) {
         mContext = context;
@@ -71,13 +71,13 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
         }
     }
 
-    protected float getBufferedPercentage() {
+    public int getBufferedPercentage() {
         return mBufferedPercentage;
     }
 
     @Override
-    public long getBufferedPosition() {
-        return (long) (getDuration() * getBufferedPercentage());
+    public int getCurrentPercentage() {
+        return (int) (getCurrentPosition() / getDuration());
     }
 
     @Override
@@ -121,7 +121,7 @@ public abstract class AbsOnePlayer<P> implements IOnePlayer {
     }
 
     protected final void notifyOnBufferingUpdate(final int percent) {
-        mBufferedPercentage = percent / 100.0f;
+        mBufferedPercentage = percent;
         if (mOnBufferingUpdateListener != null) {
             mOnBufferingUpdateListener.onBufferingUpdate(this, percent);
         }

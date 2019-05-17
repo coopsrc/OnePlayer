@@ -218,7 +218,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
-    protected float getBufferedPercentage() {
+    public int getBufferedPercentage() {
         if (mInternalPlayer != null) {
             return mInternalPlayer.getBufferedPercentage();
         }
@@ -347,6 +347,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
                     case ExoPlayer.STATE_ENDED:
                     case ExoPlayer.STATE_READY:
                         notifyOnInfo(IOnePlayer.MEDIA_INFO_BUFFERING_END, mInternalPlayer.getBufferedPercentage());
+                        notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
                         mIsBuffering = false;
                         break;
                 }
@@ -371,6 +372,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
                     break;
                 case ExoPlayer.STATE_BUFFERING:
                     notifyOnInfo(IOnePlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
+                    notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
                     mIsBuffering = true;
                     break;
                 case ExoPlayer.STATE_READY:
