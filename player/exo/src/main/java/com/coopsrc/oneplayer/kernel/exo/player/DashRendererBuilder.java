@@ -1,9 +1,10 @@
-package com.coopsrc.oneplayer.exo.player;
+package com.coopsrc.oneplayer.kernel.exo.player;
 
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Handler;
+import android.util.Log;
 
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
@@ -15,36 +16,46 @@ import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.ChunkSource;
 import com.google.android.exoplayer.chunk.FormatEvaluator.AdaptiveEvaluator;
-import com.google.android.exoplayer.drm.DrmSessionManager;
+import com.google.android.exoplayer.dash.DashChunkSource;
+import com.google.android.exoplayer.dash.DefaultDashTrackSelector;
+import com.google.android.exoplayer.dash.mpd.AdaptationSet;
+import com.google.android.exoplayer.dash.mpd.MediaPresentationDescription;
+import com.google.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser;
+import com.google.android.exoplayer.dash.mpd.Period;
+import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
+import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
+import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
 import com.google.android.exoplayer.drm.FrameworkMediaCrypto;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
-import com.google.android.exoplayer.smoothstreaming.DefaultSmoothStreamingTrackSelector;
-import com.google.android.exoplayer.smoothstreaming.SmoothStreamingChunkSource;
-import com.google.android.exoplayer.smoothstreaming.SmoothStreamingManifest;
-import com.google.android.exoplayer.smoothstreaming.SmoothStreamingManifestParser;
 import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.UriDataSource;
 import com.google.android.exoplayer.util.ManifestFetcher;
 import com.google.android.exoplayer.util.Util;
 
 import java.io.IOException;
 
 /**
- * A {@link DemoPlayer.RendererBuilder} for SmoothStreaming.
+ * A {@link DemoPlayer.RendererBuilder} for DASH.
  */
-public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilder {
+public class DashRendererBuilder implements DemoPlayer.RendererBuilder {
+
+  private static final String TAG = "DashRendererBuilder";
 
   private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
   private static final int VIDEO_BUFFER_SEGMENTS = 200;
   private static final int AUDIO_BUFFER_SEGMENTS = 54;
   private static final int TEXT_BUFFER_SEGMENTS = 2;
   private static final int LIVE_EDGE_LATENCY_MS = 30000;
+
+  private static final int SECURITY_LEVEL_UNKNOWN = -1;
+  private static final int SECURITY_LEVEL_1 = 1;
+  private static final int SECURITY_LEVEL_3 = 3;
 
   private final Context context;
   private final String userAgent;
@@ -53,11 +64,11 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
 
   private AsyncRendererBuilder currentAsyncBuilder;
 
-  public SmoothStreamingRendererBuilder(Context context, String userAgent, String url,
-                                        MediaDrmCallback drmCallback) {
+  public DashRendererBuilder(Context context, String userAgent, String url,
+                             MediaDrmCallback drmCallback) {
     this.context = context;
     this.userAgent = userAgent;
-    this.url = Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
+    this.url = url;
     this.drmCallback = drmCallback;
   }
 
@@ -76,15 +87,18 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
   }
 
   private static final class AsyncRendererBuilder
-      implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
+      implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
 
     private final Context context;
     private final String userAgent;
     private final MediaDrmCallback drmCallback;
     private final DemoPlayer player;
-    private final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
+    private final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
+    private final UriDataSource manifestDataSource;
 
     private boolean canceled;
+    private MediaPresentationDescription manifest;
+    private long elapsedRealtimeOffset;
 
     public AsyncRendererBuilder(Context context, String userAgent, String url,
                                 MediaDrmCallback drmCallback, DemoPlayer player) {
@@ -92,9 +106,9 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
       this.userAgent = userAgent;
       this.drmCallback = drmCallback;
       this.player = player;
-      SmoothStreamingManifestParser parser = new SmoothStreamingManifestParser();
-      manifestFetcher = new ManifestFetcher<>(url, new DefaultHttpDataSource(userAgent, null),
-          parser);
+      MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
+      manifestDataSource = new DefaultUriDataSource(context, userAgent);
+      manifestFetcher = new ManifestFetcher<>(url, manifestDataSource, parser);
     }
 
     public void init() {
@@ -106,36 +120,77 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
     }
 
     @Override
-    public void onSingleManifestError(IOException exception) {
+    public void onSingleManifest(MediaPresentationDescription manifest) {
       if (canceled) {
         return;
       }
 
-      player.onRenderersError(exception);
+      this.manifest = manifest;
+      if (manifest.dynamic && manifest.utcTiming != null) {
+        UtcTimingElementResolver.resolveTimingElement(manifestDataSource, manifest.utcTiming,
+            manifestFetcher.getManifestLoadCompleteTimestamp(), this);
+      } else {
+        buildRenderers();
+      }
     }
 
     @Override
-    public void onSingleManifest(SmoothStreamingManifest manifest) {
+    public void onSingleManifestError(IOException e) {
       if (canceled) {
         return;
       }
 
+      player.onRenderersError(e);
+    }
+
+    @Override
+    public void onTimestampResolved(UtcTimingElement utcTiming, long elapsedRealtimeOffset) {
+      if (canceled) {
+        return;
+      }
+
+      this.elapsedRealtimeOffset = elapsedRealtimeOffset;
+      buildRenderers();
+    }
+
+    @Override
+    public void onTimestampError(UtcTimingElement utcTiming, IOException e) {
+      if (canceled) {
+        return;
+      }
+
+      Log.e(TAG, "Failed to resolve UtcTiming element [" + utcTiming + "]", e);
+      // Be optimistic and continue in the hope that the device clock is correct.
+      buildRenderers();
+    }
+
+    private void buildRenderers() {
+      Period period = manifest.getPeriod(0);
       Handler mainHandler = player.getMainHandler();
       LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
       DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
+      boolean hasContentProtection = false;
+      for (int i = 0; i < period.adaptationSets.size(); i++) {
+        AdaptationSet adaptationSet = period.adaptationSets.get(i);
+        if (adaptationSet.type != AdaptationSet.TYPE_UNKNOWN) {
+          hasContentProtection |= adaptationSet.hasContentProtection();
+        }
+      }
+
       // Check drm support if necessary.
-      DrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
-      if (manifest.protectionElement != null) {
+      boolean filterHdContent = false;
+      StreamingDrmSessionManager<FrameworkMediaCrypto> drmSessionManager = null;
+      if (hasContentProtection) {
         if (Util.SDK_INT < 18) {
           player.onRenderersError(
               new UnsupportedDrmException(UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME));
           return;
         }
         try {
-          drmSessionManager = StreamingDrmSessionManager.newFrameworkInstance(
-              manifest.protectionElement.uuid, player.getPlaybackLooper(), drmCallback, null,
-              player.getMainHandler(), player);
+          drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(
+              player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
+          filterHdContent = getWidevineSecurityLevel(drmSessionManager) != SECURITY_LEVEL_1;
         } catch (UnsupportedDrmException e) {
           player.onRenderersError(e);
           return;
@@ -144,9 +199,10 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
 
       // Build the video renderer.
       DataSource videoDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-      ChunkSource videoChunkSource = new SmoothStreamingChunkSource(manifestFetcher,
-          DefaultSmoothStreamingTrackSelector.newVideoInstance(context, true, false),
-          videoDataSource, new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS);
+      ChunkSource videoChunkSource = new DashChunkSource(manifestFetcher,
+          DefaultDashTrackSelector.newVideoInstance(context, true, filterHdContent),
+          videoDataSource, new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS,
+          elapsedRealtimeOffset, mainHandler, player, DemoPlayer.TYPE_VIDEO);
       ChunkSampleSource videoSampleSource = new ChunkSampleSource(videoChunkSource, loadControl,
           VIDEO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
           DemoPlayer.TYPE_VIDEO);
@@ -156,9 +212,9 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
 
       // Build the audio renderer.
       DataSource audioDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-      ChunkSource audioChunkSource = new SmoothStreamingChunkSource(manifestFetcher,
-          DefaultSmoothStreamingTrackSelector.newAudioInstance(),
-          audioDataSource, null, LIVE_EDGE_LATENCY_MS);
+      ChunkSource audioChunkSource = new DashChunkSource(manifestFetcher,
+          DefaultDashTrackSelector.newAudioInstance(), audioDataSource, null, LIVE_EDGE_LATENCY_MS,
+          elapsedRealtimeOffset, mainHandler, player, DemoPlayer.TYPE_AUDIO);
       ChunkSampleSource audioSampleSource = new ChunkSampleSource(audioChunkSource, loadControl,
           AUDIO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
           DemoPlayer.TYPE_AUDIO);
@@ -168,9 +224,9 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
 
       // Build the text renderer.
       DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-      ChunkSource textChunkSource = new SmoothStreamingChunkSource(manifestFetcher,
-          DefaultSmoothStreamingTrackSelector.newTextInstance(),
-          textDataSource, null, LIVE_EDGE_LATENCY_MS);
+      ChunkSource textChunkSource = new DashChunkSource(manifestFetcher,
+          DefaultDashTrackSelector.newTextInstance(), textDataSource, null, LIVE_EDGE_LATENCY_MS,
+          elapsedRealtimeOffset, mainHandler, player, DemoPlayer.TYPE_TEXT);
       ChunkSampleSource textSampleSource = new ChunkSampleSource(textChunkSource, loadControl,
           TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
           DemoPlayer.TYPE_TEXT);
@@ -183,6 +239,12 @@ public class SmoothStreamingRendererBuilder implements DemoPlayer.RendererBuilde
       renderers[DemoPlayer.TYPE_AUDIO] = audioRenderer;
       renderers[DemoPlayer.TYPE_TEXT] = textRenderer;
       player.onRenderers(renderers, bandwidthMeter);
+    }
+
+    private static int getWidevineSecurityLevel(StreamingDrmSessionManager sessionManager) {
+      String securityLevelProperty = sessionManager.getPropertyString("securityLevel");
+      return securityLevelProperty.equals("L1") ? SECURITY_LEVEL_1 : securityLevelProperty
+          .equals("L3") ? SECURITY_LEVEL_3 : SECURITY_LEVEL_UNKNOWN;
     }
 
   }

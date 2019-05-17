@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.ijkmedia.misc;
+package com.coopsrc.oneplayer.kernel.ijkmedia.misc;
 
 import com.coopsrc.oneplayer.core.misc.IMediaFormat;
 

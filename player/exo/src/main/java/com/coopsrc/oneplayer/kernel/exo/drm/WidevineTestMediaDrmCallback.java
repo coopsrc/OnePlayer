@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.exo.drm;
+package com.coopsrc.oneplayer.kernel.exo.drm;
 
 import android.annotation.TargetApi;
 import android.text.TextUtils;

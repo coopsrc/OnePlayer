@@ -4,10 +4,9 @@ import android.content.Context;
 import android.support.annotation.StringDef;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
-import com.coopsrc.oneplayer.exo.OneExoPlayer;
-import com.coopsrc.oneplayer.exo2.OneExo2Player;
-import com.coopsrc.oneplayer.ijkmedia.OneIjkPlayer;
-import com.coopsrc.oneplayer.media.OneMediaPlayer;
+import com.coopsrc.oneplayer.kernel.exo.OneExoPlayer;
+import com.coopsrc.oneplayer.kernel.ijkmedia.OneIjkPlayer;
+import com.coopsrc.oneplayer.kernel.media.OneMediaPlayer;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

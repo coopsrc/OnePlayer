@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.exo.player;
+package com.coopsrc.oneplayer.kernel.exo.player;
 
 import android.media.MediaCodec.CryptoException;
 import android.os.Handler;

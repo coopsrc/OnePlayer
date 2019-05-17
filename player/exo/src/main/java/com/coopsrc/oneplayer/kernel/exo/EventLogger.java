@@ -1,10 +1,10 @@
-package com.coopsrc.oneplayer.exo;
+package com.coopsrc.oneplayer.kernel.exo;
 
 import android.media.MediaCodec.CryptoException;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.coopsrc.oneplayer.exo.player.DemoPlayer;
+import com.coopsrc.oneplayer.kernel.exo.player.DemoPlayer;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer.DecoderInitializationException;
 import com.google.android.exoplayer.TimeRange;

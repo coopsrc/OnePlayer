@@ -1,4 +1,8 @@
-package com.coopsrc.oneplayer.ijkmedia.misc;
+package com.coopsrc.oneplayer.kernel.media.misc;
+
+import android.media.MediaDataSource;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 
@@ -7,12 +11,13 @@ import java.io.IOException;
 /**
  * @author tingkuo
  * <p>
- * Date: 2019-05-10 11:07
+ * Date: 2019-05-10 10:39
  */
-public class IjkMediaDataSource implements tv.danmaku.ijk.media.player.misc.IMediaDataSource {
+@RequiresApi(api = Build.VERSION_CODES.M)
+public class AndroidMediaDataSource extends MediaDataSource {
     private final IMediaDataSource mMediaDataSource;
 
-    public IjkMediaDataSource(IMediaDataSource mediaDataSource) {
+    public AndroidMediaDataSource(IMediaDataSource mediaDataSource) {
         mMediaDataSource = mediaDataSource;
     }
 

@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.media.misc;
+package com.coopsrc.oneplayer.kernel.media.misc;
 
 import android.media.MediaPlayer;
 import android.support.annotation.NonNull;

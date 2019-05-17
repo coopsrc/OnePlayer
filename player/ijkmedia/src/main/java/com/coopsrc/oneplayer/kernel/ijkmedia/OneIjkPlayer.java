@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.ijkmedia;
+package com.coopsrc.oneplayer.kernel.ijkmedia;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -11,8 +11,8 @@ import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.misc.OneTimedText;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
-import com.coopsrc.oneplayer.ijkmedia.misc.IjkMediaDataSource;
-import com.coopsrc.oneplayer.ijkmedia.misc.OneIjkTrackInfo;
+import com.coopsrc.oneplayer.kernel.ijkmedia.misc.IjkMediaDataSource;
+import com.coopsrc.oneplayer.kernel.ijkmedia.misc.OneIjkTrackInfo;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

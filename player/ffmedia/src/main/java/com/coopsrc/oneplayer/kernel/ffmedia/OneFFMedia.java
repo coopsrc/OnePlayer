@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.ffmedia;
+package com.coopsrc.oneplayer.kernel.ffmedia;
 
 /**
  * @author tingkuo

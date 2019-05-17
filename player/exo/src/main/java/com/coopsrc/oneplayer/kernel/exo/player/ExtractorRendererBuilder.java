@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.exo.player;
+package com.coopsrc.oneplayer.kernel.exo.player;
 
 import android.content.Context;
 import android.media.AudioManager;

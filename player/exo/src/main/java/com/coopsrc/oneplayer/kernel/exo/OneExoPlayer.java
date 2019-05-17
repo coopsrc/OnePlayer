@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.exo;
+package com.coopsrc.oneplayer.kernel.exo;
 
 import android.content.Context;
 import android.net.Uri;
@@ -9,13 +9,13 @@ import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.IOnePlayer;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
-import com.coopsrc.oneplayer.exo.drm.SmoothStreamingTestMediaDrmCallback;
-import com.coopsrc.oneplayer.exo.drm.WidevineTestMediaDrmCallback;
-import com.coopsrc.oneplayer.exo.player.DashRendererBuilder;
-import com.coopsrc.oneplayer.exo.player.DemoPlayer;
-import com.coopsrc.oneplayer.exo.player.ExtractorRendererBuilder;
-import com.coopsrc.oneplayer.exo.player.HlsRendererBuilder;
-import com.coopsrc.oneplayer.exo.player.SmoothStreamingRendererBuilder;
+import com.coopsrc.oneplayer.kernel.exo.drm.SmoothStreamingTestMediaDrmCallback;
+import com.coopsrc.oneplayer.kernel.exo.drm.WidevineTestMediaDrmCallback;
+import com.coopsrc.oneplayer.kernel.exo.player.DashRendererBuilder;
+import com.coopsrc.oneplayer.kernel.exo.player.DemoPlayer;
+import com.coopsrc.oneplayer.kernel.exo.player.ExtractorRendererBuilder;
+import com.coopsrc.oneplayer.kernel.exo.player.HlsRendererBuilder;
+import com.coopsrc.oneplayer.kernel.exo.player.SmoothStreamingRendererBuilder;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.util.Util;
 

@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.media;
+package com.coopsrc.oneplayer.kernel.media;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -15,8 +15,8 @@ import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.misc.OneTimedText;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
-import com.coopsrc.oneplayer.media.misc.AndroidMediaDataSource;
-import com.coopsrc.oneplayer.media.misc.AndroidTrackInfo;
+import com.coopsrc.oneplayer.kernel.media.misc.AndroidMediaDataSource;
+import com.coopsrc.oneplayer.kernel.media.misc.AndroidTrackInfo;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

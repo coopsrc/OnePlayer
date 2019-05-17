@@ -11,7 +11,7 @@ import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.IOnePlayer;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
-import com.coopsrc.oneplayer.ffmedia.OneFFMedia;
+import com.coopsrc.oneplayer.kernel.ffmedia.OneFFMedia;
 import com.coopsrc.oneplayer.ui.PlayerView;
 
 import java.util.HashMap;
