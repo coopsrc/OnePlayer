@@ -33,5 +33,11 @@ dependencies {
     implementation "com.android.support:support-media-compat:$rootProject.supportVersion"
     implementation "com.android.support.constraint:constraint-layout:$rootProject.constraintVersion"
 
-    api project(':player-core')
+    api project(':player-base')
 }
+
+ext {
+    releaseArtifact = 'oneplayer-ui'
+    releaseDescription = 'The OnePlayer library ui module.'
+}
+apply from: '../../publish.gradle'

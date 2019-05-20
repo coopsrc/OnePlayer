@@ -31,5 +31,11 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
 
-    api project(':player-core')
+    api project(':player-base')
 }
+
+ext {
+    releaseArtifact = 'oneplayer-media'
+    releaseDescription = 'The OnePlayer library mediaplayer kernel module.'
+}
+apply from: '../../publish.gradle'

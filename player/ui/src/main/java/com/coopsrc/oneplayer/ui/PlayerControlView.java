@@ -1,5 +1,6 @@
 package com.coopsrc.oneplayer.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -10,6 +11,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.MediaController;
 import android.widget.SeekBar;
@@ -44,6 +47,8 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
     private boolean mCanPause = true;
     private boolean mCanSeekBackward = true;
     private boolean mCanSeekForward = true;
+
+    private boolean mIsFullscreen = false;
 
     private IOnePlayer mPlayer;
     private PlayerControlListener mControlListener;
@@ -163,7 +168,18 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
     }
 
     public void switchFullscreen() {
+        Activity activity = PlayerUtils.scanForActivity(getContext());
+        if (activity == null) {
+            return;
+        }
+        if (mIsFullscreen) {
+            PlayerUtils.showActionBar(getContext());
+            mIsFullscreen = false;
+        } else {
+            PlayerUtils.hideActionBar(getContext());
 
+            mIsFullscreen = true;
+        }
     }
 
     @Override

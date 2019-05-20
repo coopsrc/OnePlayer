@@ -31,7 +31,7 @@ public final class PlayerFactory {
     public static final String TypeIjk = "ijk";
 
     @StringDef({TypeMedia, TypeExo, TypeExo2, TypeOne, TypeIjk})
-    @Retention(RetentionPolicy.RUNTIME)
+    @Retention(RetentionPolicy.SOURCE)
     @Target({FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})
     public @interface PlayerType {
     }

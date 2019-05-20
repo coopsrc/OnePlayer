@@ -50,5 +50,12 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
 
-    api project(':player-core')
+    api project(':player-base')
 }
+
+
+ext {
+    releaseArtifact = 'oneplayer-ffmpeg'
+    releaseDescription = 'The OnePlayer library ffmpeg module.'
+}
+apply from: '../../publish.gradle'

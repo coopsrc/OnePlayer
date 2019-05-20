@@ -30,18 +30,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
-
-    api project(':player-base')
-    api project(':player-media')
-    api project(':player-exo')
-    api project(':player-exo2')
-    api project(':player-ffmedia')
-    api project(':player-ijkmedia')
+    implementation "com.jakewharton.timber:timber:$timberVersion"
 }
 
-
 ext {
-    releaseArtifact = 'oneplayer-all'
-    releaseDescription = 'The OnePlayer library full module.'
+    releaseArtifact = 'oneplayer-base'
+    releaseDescription = 'The OnePlayer library base module.'
 }
 apply from: '../../publish.gradle'

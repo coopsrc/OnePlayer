@@ -31,7 +31,14 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
 
-    api project(':player-core')
+    api project(':player-base')
 
     implementation 'com.google.android.exoplayer:exoplayer:r1.5.16'
 }
+
+
+ext {
+    releaseArtifact = 'oneplayer-exo'
+    releaseDescription = 'The OnePlayer library exoplayer kernel module.'
+}
+apply from: '../../publish.gradle'

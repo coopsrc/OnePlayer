@@ -31,7 +31,7 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
 
-    api project(':player-core')
+    api project(':player-base')
 
     implementation 'com.google.android.exoplayer:exoplayer-core:2.10.0'
     implementation 'com.google.android.exoplayer:exoplayer-dash:2.10.0'
@@ -39,3 +39,10 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.0'
     implementation 'com.google.android.exoplayer:extension-rtmp:2.10.0'
 }
+
+
+ext {
+    releaseArtifact = 'oneplayer-exo2'
+    releaseDescription = 'The OnePlayer library exoplayer2 kernel module.'
+}
+apply from: '../../publish.gradle'
