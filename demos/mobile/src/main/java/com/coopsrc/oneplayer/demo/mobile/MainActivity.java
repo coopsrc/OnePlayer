@@ -10,7 +10,7 @@ import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.IOnePlayer;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
-import com.coopsrc.oneplayer.kernel.ffmedia.OneFFMedia;
+import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.PlayerView;
 
 import java.util.HashMap;
@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String URL = "https://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
     private static final String videoLocal = Environment.getExternalStorageDirectory() + "/Movies/Peru.mp4";
 
+    private static final String RTSP = "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4";
+
     private static final String DASH_HD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_hd.mpd";
     private static final String DASH_UHD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_uhd.mpd";
     private static final String DASH_SECURE = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd";
@@ -30,6 +32,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String SS = "https://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism";
 
     private static final String HLS = "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8";
+    private static final String HLS_PL_MP4 = "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8";
+
+    private static final String HLS_FAST_8 = "https://kakazy-yun.com/20170831/dY1xSKbG/index.m3u8";
+
+    private static final String HLS_LIVE = "http://weblive.hebtv.com/live/hbgg_bq/index.m3u8";
+    private static final String testURl2 = "https://video-dev.github.io/streams/x36xhzz/x36xhzz.m3u8";
 
     private static final String FLV = "https://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0";
 
@@ -41,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.i(TAG, "onCreate: " + OneFFMedia.ffmpegVersion());
+        Log.i(TAG, "onCreate: " + OneMercuryPlayer.ffmpegVersion());
 
         mPlayerView = findViewById(R.id.player_view);
 
@@ -94,6 +102,9 @@ public class MainActivity extends AppCompatActivity {
 
 //                mPlayerView.setVideoURI(Uri.parse(videoLocal));
 
+                // rtsp
+//                mPlayerView.setVideoPath(RTSP);
+
                 // dash h264 mp4
 //                mPlayerView.setVideoPath(DASH_HD);
 
@@ -102,9 +113,14 @@ public class MainActivity extends AppCompatActivity {
 
                 // hls
 //                mPlayerView.setVideoPath(HLS);
+//                mPlayerView.setVideoPath(HLS_PL_MP4);
+
+                // hls live
+//                mPlayerView.setVideoPath(HLS_LIVE);
+//                mPlayerView.setVideoPath(HLS_FAST_8);
 
                 // 360
-                mPlayerView.setVideoPath(FLV);
+//                mPlayerView.setVideoPath(FLV);
 
                 // dash h264 mp4 drm
 //                dashHeaders.put("contentId", "");

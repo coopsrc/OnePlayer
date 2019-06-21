@@ -5,7 +5,7 @@ package com.coopsrc.oneplayer.kernel.ffmedia;
  * <p>
  * Date: 2019-05-07 16:20
  */
-public class OneFFMedia {
+public class OneMercuryPlayer {
 
     static {
         System.loadLibrary("oneplayer");

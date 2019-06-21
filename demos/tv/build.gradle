@@ -44,6 +44,6 @@ dependencies {
     implementation "com.android.support.constraint:constraint-layout:$rootProject.constraintVersion"
     implementation "com.github.bumptech.glide:glide:$rootProject.glideVersion"
 
-    implementation project(':player-all')
-    implementation project(':player-ui')
+//    implementation project(':player-all')
+//    implementation project(':player-ui')
 }
