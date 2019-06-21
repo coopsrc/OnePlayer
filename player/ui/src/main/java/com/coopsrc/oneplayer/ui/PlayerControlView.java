@@ -273,12 +273,6 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
 
     private void showControls() {
         Log.i(TAG, "showControls: ");
-//        ObjectAnimator alpha = ObjectAnimator.ofFloat(mGroupActionBar, "alpha", 1.0f);
-//        AnimatorSet animatorSet = new AnimatorSet();
-//        animatorSet.playTogether(alpha);
-//        animatorSet.setInterpolator(new LinearInterpolator());
-//        animatorSet.setDuration(300);
-//        animatorSet.start();
 
         mGroupMenuBar.setVisibility(VISIBLE);
         mGroupActionBar.setVisibility(VISIBLE);
@@ -289,12 +283,6 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
 
     private void dismissControls() {
         Log.i(TAG, "dismissControls: ");
-//        ObjectAnimator alpha = ObjectAnimator.ofFloat(mGroupActionBar, "alpha", 0.0f);
-//        AnimatorSet animatorSet = new AnimatorSet();
-//        animatorSet.playTogether(alpha);
-//        animatorSet.setInterpolator(new LinearInterpolator());
-//        animatorSet.setDuration(300);
-//        animatorSet.start();
 
         mGroupMenuBar.setVisibility(GONE);
         mGroupActionBar.setVisibility(GONE);

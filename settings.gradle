@@ -1,5 +1,6 @@
 include ':player-base'
 include ':player-media'
+include ':player-media2'
 include ':player-exo'
 include ':player-exo2'
 include ':player-mercury'
@@ -10,6 +11,7 @@ include ':player-core'
 
 project(':player-base').projectDir = new File(rootDir, 'player/base')
 project(':player-media').projectDir = new File(rootDir, 'player/media')
+project(':player-media2').projectDir = new File(rootDir, 'player/media2')
 project(':player-exo').projectDir = new File(rootDir, 'player/exo')
 project(':player-exo2').projectDir = new File(rootDir, 'player/exo2')
 project(':player-mercury').projectDir = new File(rootDir, 'player/mercury')

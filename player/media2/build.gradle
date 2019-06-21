@@ -30,19 +30,15 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
+//    implementation "androidx.media2:media2-common:1.0.0-rc01"
+//    implementation "androidx.media2:media2-player:1.0.0-rc01"
+//    implementation "androidx.media2:media2-session:1.0.0-rc01"
 
     api project(':player-base')
-    api project(':player-media')
-    api project(':player-media2')
-    api project(':player-exo')
-    api project(':player-exo2')
-    api project(':player-mercury')
-    api project(':player-ijkmedia')
 }
 
-
 ext {
-    releaseArtifact = 'oneplayer-all'
-    releaseDescription = 'The OnePlayer library full module.'
+    releaseArtifact = 'oneplayer-media1'
+    releaseDescription = 'The OnePlayer library MediaPlayer2 kernel module.'
 }
 apply from: '../../publish.gradle'
