@@ -1,9 +1,10 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 
 import com.coopsrc.oneplayer.PlayerFactory;
@@ -24,9 +25,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String RTSP = "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4";
 
+    private static final String DASH_SD_HD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears.mpd";
+    private static final String DASH_SD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_sd.mpd";
     private static final String DASH_HD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_hd.mpd";
     private static final String DASH_UHD = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_uhd.mpd";
-    private static final String DASH_SECURE = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd";
+    private static final String DASH_SECURE_SD_DH = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears.mpd";
+    private static final String DASH_SECURE_SD = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd";
+    private static final String DASH_SECURE_HD = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_hd.mpd";
+    private static final String DASH_SECURE_UHD = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_uhd.mpd";
     private Map<String, String> dashHeaders = new HashMap<>();
 
     private static final String SS = "https://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism";
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // hls live
 //                mPlayerView.setVideoPath(HLS_LIVE);
-//                mPlayerView.setVideoPath(HLS_FAST_8);
+                mPlayerView.setVideoPath(HLS_FAST_8);
 
                 // 360
 //                mPlayerView.setVideoPath(FLV);
@@ -125,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 // dash h264 mp4 drm
 //                dashHeaders.put("contentId", "");
 //                dashHeaders.put("provider", "widevine_test");
-//                mPlayerView.setVideoURI(Uri.parse(DASH_SECURE), dashHeaders);
+//                mPlayerView.setVideoURI(Uri.parse(DASH_SECURE_SD), dashHeaders);
             }
         }, 500);
     }

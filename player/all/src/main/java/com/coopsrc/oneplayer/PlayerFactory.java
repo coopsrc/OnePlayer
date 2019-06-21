@@ -1,7 +1,8 @@
 package com.coopsrc.oneplayer;
 
 import android.content.Context;
-import android.support.annotation.StringDef;
+
+import androidx.annotation.StringDef;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.kernel.exo.OneExoPlayer;

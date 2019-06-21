@@ -8,7 +8,7 @@ package com.coopsrc.oneplayer.kernel.ffmedia;
 public class OneMercuryPlayer {
 
     static {
-        System.loadLibrary("oneplayer");
+        System.loadLibrary("mercury");
     }
 
     public static native String ffmpegVersion();

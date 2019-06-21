@@ -1,7 +1,7 @@
 package com.coopsrc.oneplayer.kernel.media.misc;
 
 import android.media.MediaPlayer;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.coopsrc.oneplayer.core.misc.IMediaFormat;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;

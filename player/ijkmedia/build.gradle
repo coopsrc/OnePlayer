@@ -29,7 +29,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
 
     api project(':player-base')

@@ -1,6 +1,6 @@
 package com.coopsrc.oneplayer.core.utils;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import timber.log.Timber;
 

@@ -9,7 +9,7 @@ set(JNI_LIBS_DIR ${CMAKE_SOURCE_DIR}/src/main/jniLibs)
 add_library(
         mercury
         SHARED
-        ${SRC_DIR}/oneplayer.cpp)
+        ${SRC_DIR}/mercury_player.cpp)
 
 add_library(avutil
         SHARED

@@ -8,19 +8,13 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
-        versionName rootProject.ext.versionName
+//        versionName rootProject.ext.versionName
+        versionName "1.0.0-alpha01"
 
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++11 -frtti -fexceptions"
             }
-        }
-    }
-
-    splits {
-        abi {
-            enable true
-            universalApk true
         }
     }
 
@@ -48,14 +42,15 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "com.android.support:appcompat-v7:$rootProject.supportVersion"
+    implementation 'androidx.appcompat:appcompat:1.0.2'
 
     api project(':player-base')
 }
 
 
 ext {
-    releaseArtifact = 'oneplayer-ffmpeg'
+    releaseArtifact = 'oneplayer-mercury'
     releaseDescription = 'The OnePlayer library ffmpeg module.'
+    versionName = "1.0.0-alpha01"
 }
 apply from: '../../publish.gradle'

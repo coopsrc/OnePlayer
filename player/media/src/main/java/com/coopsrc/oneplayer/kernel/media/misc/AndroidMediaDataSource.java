@@ -2,7 +2,7 @@ package com.coopsrc.oneplayer.kernel.media.misc;
 
 import android.media.MediaDataSource;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 
