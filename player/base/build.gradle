@@ -33,6 +33,9 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
+
+    compileOnly 'org.checkerframework:checker-qual:2.5.5'
+    compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'
 }
 
 ext {

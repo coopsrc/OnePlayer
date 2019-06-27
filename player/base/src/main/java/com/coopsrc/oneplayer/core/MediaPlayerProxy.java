@@ -6,6 +6,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.TextureView;
+
+import androidx.annotation.Nullable;
 
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
@@ -42,6 +46,61 @@ public class MediaPlayerProxy implements OnePlayer {
     }
 
     @Override
+    public void addVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener) {
+        mBackendPlayer.addVideoSurfaceListener(videoSurfaceListener);
+    }
+
+    @Override
+    public void removeVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener) {
+        mBackendPlayer.removeVideoSurfaceListener(videoSurfaceListener);
+    }
+
+    @Override
+    public void clearVideoSurface() {
+        mBackendPlayer.clearVideoSurface();
+    }
+
+    @Override
+    public void setVideoSurface(@Nullable Surface surface) {
+        mBackendPlayer.setVideoSurface(surface);
+    }
+
+    @Override
+    public void clearVideoSurface(Surface surface) {
+        mBackendPlayer.clearVideoSurface(surface);
+    }
+
+    @Override
+    public void setVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
+        mBackendPlayer.setVideoSurfaceHolder(surfaceHolder);
+    }
+
+    @Override
+    public void clearVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
+        mBackendPlayer.clearVideoSurfaceHolder(surfaceHolder);
+    }
+
+    @Override
+    public void setVideoSurfaceView(SurfaceView surfaceView) {
+        mBackendPlayer.setVideoSurfaceView(surfaceView);
+    }
+
+    @Override
+    public void clearVideoSurfaceView(SurfaceView surfaceView) {
+        mBackendPlayer.setVideoSurfaceView(surfaceView);
+    }
+
+    @Override
+    public void setVideoTextureView(TextureView textureView) {
+        mBackendPlayer.setVideoTextureView(textureView);
+    }
+
+    @Override
+    public void clearVideoTextureView(TextureView textureView) {
+        mBackendPlayer.clearVideoTextureView(textureView);
+    }
+
+    @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         mBackendPlayer.setDataSource(context, uri);
     }
@@ -70,16 +129,6 @@ public class MediaPlayerProxy implements OnePlayer {
     @Override
     public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
         mBackendPlayer.setDataSource(dataSource);
-    }
-
-    @Override
-    public void setDisplay(SurfaceHolder holder) {
-        mBackendPlayer.setDisplay(holder);
-    }
-
-    @Override
-    public void setSurface(Surface surface) {
-        mBackendPlayer.setSurface(surface);
     }
 
     @Override
@@ -195,6 +244,26 @@ public class MediaPlayerProxy implements OnePlayer {
     @Override
     public int getAudioSessionId() {
         return mBackendPlayer.getAudioSessionId();
+    }
+
+    @Override
+    public long getBufferedPosition() {
+        return mBackendPlayer.getBufferedPosition();
+    }
+
+    @Override
+    public int getPlaybackState() {
+        return mBackendPlayer.getPlaybackState();
+    }
+
+    @Override
+    public void setPlayWhenReady(boolean playWhenReady) {
+        mBackendPlayer.setPlayWhenReady(playWhenReady);
+    }
+
+    @Override
+    public boolean getPlayWhenReady() {
+        return mBackendPlayer.getPlayWhenReady();
     }
 
     @Override
@@ -315,5 +384,10 @@ public class MediaPlayerProxy implements OnePlayer {
         } else {
             mBackendPlayer.setOnVideoSizeChangedListener(null);
         }
+    }
+
+    @Override
+    public void setOnPlayerStateChangedListener(OnPlaybackStateChangedListener onPlaybackStateChangedListener) {
+
     }
 }

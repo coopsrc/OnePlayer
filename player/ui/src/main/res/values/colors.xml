@@ -12,4 +12,6 @@
     <color name="progressColor">@color/colorAccent</color>
     <color name="secondaryProgressColor">#EE8080</color>
 
+    <color name="error_message_background_color">#AA000000</color>
+
 </resources>

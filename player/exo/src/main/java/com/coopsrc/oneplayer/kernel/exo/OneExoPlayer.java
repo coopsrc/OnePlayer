@@ -7,6 +7,7 @@ import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.OnePlayer;
+import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.kernel.exo.drm.SmoothStreamingTestMediaDrmCallback;
@@ -29,6 +30,11 @@ import java.util.Map;
  * Date: 2019-05-07 17:17
  */
 public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
+    private static final String TAG = "OneExoPlayer";
+
+    static {
+        PlayerLibraryInfo.registerModule("one.player.exo");
+    }
 
     private DemoPlayer mInternalPlayer;
     private ExoPlayerListenerHolder mInternalAdapterListener;
@@ -60,6 +66,11 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     @Override
     public DemoPlayer getInternalPlayer() {
         return mInternalPlayer;
+    }
+
+    @Override
+    protected PlayerListenerHolder getInternalListener() {
+        return mInternalAdapterListener;
     }
 
     @Override
@@ -102,7 +113,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
-    public void setDisplay(SurfaceHolder holder) {
+    protected void setDisplay(SurfaceHolder holder) {
         if (holder == null) {
             setSurface(null);
         } else {
@@ -112,7 +123,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
-    public void setSurface(Surface surface) {
+    protected void setSurface(Surface surface) {
         mSurface = surface;
         if (mInternalPlayer != null) {
             mInternalPlayer.setSurface(surface);
@@ -291,6 +302,16 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
         return 0;
     }
 
+    @Override
+    public void setPlayWhenReady(boolean playWhenReady) {
+
+    }
+
+    @Override
+    public boolean getPlayWhenReady() {
+        return false;
+    }
+
     private DemoPlayer.RendererBuilder generateRendererBuilder() {
         Uri contentUri = mUri;
         String userAgent = Util.getUserAgent(getContext(), "OneExoPlayer");
@@ -391,7 +412,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
         }
 
         @Override
-        public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+        public void onVideoSizeChanged(int width, int height, int rotationDegrees, float ratio) {
 
             mVideoWidth = width;
             mVideoHeight = height;

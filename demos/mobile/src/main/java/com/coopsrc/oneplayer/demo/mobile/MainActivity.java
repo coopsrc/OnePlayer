@@ -2,13 +2,14 @@ package com.coopsrc.oneplayer.demo.mobile;
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.OnePlayer;
-import com.coopsrc.oneplayer.core.utils.LogUtils;
+import com.coopsrc.oneplayer.core.PlaybackPreparer;
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.PlayerView;
 
@@ -44,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String testURl2 = "https://video-dev.github.io/streams/x36xhzz/x36xhzz.m3u8";
 
     private static final String FLV = "https://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0";
+    private static final String _360_congo = "https://storage.googleapis.com/exoplayer-test-media-1/360/congo.mp4";
+    private static final String _360_sphericalv2 = "https://storage.googleapis.com/exoplayer-test-media-1/360/sphericalv2.mp4";
+    private static final String _360_iceland0 = "https://storage.googleapis.com/exoplayer-test-media-1/360/iceland0.ts";
 
     private PlayerView mPlayerView;
 
@@ -73,65 +77,71 @@ public class MainActivity extends AppCompatActivity {
         mPlayer.setOnInfoListener(new OnePlayer.OnInfoListener() {
             @Override
             public boolean onInfo(OnePlayer player, int what, int extra) {
-                LogUtils.i(TAG, "onInfo: what=%s, extra=%s", what, extra);
+                PlayerLogger.i(TAG, "onInfo: what=%s, extra=%s", what, extra);
                 return false;
             }
         });
         mPlayer.setOnBufferingUpdateListener(new OnePlayer.OnBufferingUpdateListener() {
             @Override
             public void onBufferingUpdate(OnePlayer player, int percent) {
-                LogUtils.i(TAG, "onBufferingUpdate: percent=%s", percent);
+                PlayerLogger.i(TAG, "onBufferingUpdate: percent=%s", percent);
             }
         });
         mPlayer.setOnErrorListener(new OnePlayer.OnErrorListener() {
             @Override
             public boolean onError(OnePlayer player, int what, int extra) {
-                LogUtils.i(TAG, "onError: what=%s, extra=%s", what, extra);
+                PlayerLogger.i(TAG, "onError: what=%s, extra=%s", what, extra);
                 return false;
             }
         });
 
         mPlayerView.setPlayer(mPlayer);
-
+        mPlayerView.setPlaybackPreparer(new PlaybackPreparer() {
+            @Override
+            public void preparePlayback() {
+                mPlayer.prepareAsync();
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        try {
+//            mPlayer.setDataSource(URL);
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-//                mPlayerView.setVideoPath(URL);
+//            mPlayer.setDataSource(this, Uri.parse(videoLocal));
 
-//                mPlayerView.setVideoURI(Uri.parse(videoLocal));
-
-                // rtsp
+            // rtsp
 //                mPlayerView.setVideoPath(RTSP);
 
-                // dash h264 mp4
-//                mPlayerView.setVideoPath(DASH_HD);
+            // dash h264 mp4
+//            mPlayer.setDataSource(DASH_HD);
 
-                // ss
+            // ss
 //                mPlayerView.setVideoPath(SS);
 
-                // hls
+            // hls
 //                mPlayerView.setVideoPath(HLS);
 //                mPlayerView.setVideoPath(HLS_PL_MP4);
 
-                // hls live
-//                mPlayerView.setVideoPath(HLS_LIVE);
-                mPlayerView.setVideoPath(HLS_FAST_8);
+            // hls live
+//            mPlayer.setDataSource(HLS_LIVE);
+            mPlayer.setDataSource(HLS_FAST_8);
 
-                // 360
-//                mPlayerView.setVideoPath(FLV);
+            // 360
+//            mPlayer.setDataSource(_360_congo);
 
-                // dash h264 mp4 drm
+            // dash h264 mp4 drm
 //                dashHeaders.put("contentId", "");
 //                dashHeaders.put("provider", "widevine_test");
 //                mPlayerView.setVideoURI(Uri.parse(DASH_SECURE_SD), dashHeaders);
-            }
-        }, 500);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override

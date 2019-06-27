@@ -1,12 +1,22 @@
 package com.coopsrc.oneplayer.core;
 
 import android.content.Context;
+import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.TextureView;
+
+import androidx.annotation.Nullable;
 
 import com.coopsrc.oneplayer.core.misc.ITimedText;
+import com.coopsrc.oneplayer.core.utils.Constants;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author tingkuo
@@ -26,15 +36,28 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     private final CopyOnWriteArrayList<EventListenerHolder> mListenerHolders;
     private final ArrayDeque<Runnable> mPendingListenerNotifications;
 
+    private final CopyOnWriteArraySet<VideoSurfaceListener> mVideoSurfaceListeners;
+
     private final Context mContext;
 
     private int mBufferedPercentage;
+
+    @Nullable
+    private Surface surface;
+    @Nullable
+    private SurfaceHolder surfaceHolder;
+    @Nullable
+    private TextureView textureView;
+    private int surfaceWidth;
+    private int surfaceHeight;
 
     public AbsOnePlayer(Context context) {
         mContext = context;
 
         mListenerHolders = new CopyOnWriteArrayList<>();
         mPendingListenerNotifications = new ArrayDeque<>();
+
+        mVideoSurfaceListeners = new CopyOnWriteArraySet<>();
     }
 
     public Context getContext() {
@@ -42,6 +65,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     public abstract P getInternalPlayer();
+
+    protected abstract PlayerListenerHolder getInternalListener();
 
     protected abstract void attachInternalListeners();
 
@@ -71,13 +96,128 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         }
     }
 
+    protected abstract void setSurface(@Nullable Surface surface);
+
+    protected abstract void setDisplay(SurfaceHolder holder);
+
+    @Override
+    public void addVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener) {
+        mVideoSurfaceListeners.add(videoSurfaceListener);
+    }
+
+    @Override
+    public void removeVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener) {
+        mVideoSurfaceListeners.remove(videoSurfaceListener);
+    }
+
+    @Override
+    public void clearVideoSurface() {
+        setVideoSurface(null);
+    }
+
+    @Override
+    public void clearVideoSurface(Surface surface) {
+        if (surface != null && surface == this.surface) {
+            setVideoSurface(null);
+        }
+    }
+
+    @Override
+    public void setVideoSurface(@Nullable Surface surface) {
+        removeSurfaceCallbacks();
+        setVideoSurfaceInternal(surface, false);
+        int newSurfaceSize = surface == null ? 0 : Constants.LENGTH_UNSET;
+        maybeNotifySurfaceSizeChanged(newSurfaceSize, newSurfaceSize);
+    }
+
+    @Override
+    public void setVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
+
+        removeSurfaceCallbacks();
+        this.surfaceHolder = surfaceHolder;
+        if (surfaceHolder == null) {
+            setVideoSurfaceInternal(null, false);
+            maybeNotifySurfaceSizeChanged(0, 0);
+        } else {
+            surfaceHolder.addCallback(getInternalListener());
+            Surface surface = surfaceHolder.getSurface();
+            if (surface != null && surface.isValid()) {
+                setVideoSurfaceInternal(surface, false);
+                Rect surfaceSize = surfaceHolder.getSurfaceFrame();
+                maybeNotifySurfaceSizeChanged(surfaceSize.width(), surfaceSize.height());
+            } else {
+                setVideoSurfaceInternal(null, false);
+                maybeNotifySurfaceSizeChanged(0, 0);
+            }
+        }
+    }
+
+    @Override
+    public void clearVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
+
+        if (surfaceHolder != null && surfaceHolder == this.surfaceHolder) {
+            setVideoSurfaceHolder(null);
+        }
+    }
+
+    @Override
+    public void setVideoSurfaceView(SurfaceView surfaceView) {
+
+        setVideoSurfaceHolder(surfaceView == null ? null : surfaceView.getHolder());
+    }
+
+    @Override
+    public void clearVideoSurfaceView(SurfaceView surfaceView) {
+
+        clearVideoSurfaceHolder(surfaceView == null ? null : surfaceView.getHolder());
+    }
+
+    @Override
+    public void setVideoTextureView(TextureView textureView) {
+
+    }
+
+    @Override
+    public void clearVideoTextureView(TextureView textureView) {
+
+        if (textureView != null && textureView == this.textureView) {
+            setVideoTextureView(null);
+        }
+    }
+
+    @Override
     public int getBufferedPercentage() {
         return mBufferedPercentage;
     }
 
     @Override
+    public long getBufferedPosition() {
+        return mBufferedPercentage * getDuration();
+    }
+
+    @Override
     public int getCurrentPercentage() {
         return (int) (getCurrentPosition() / getDuration());
+    }
+
+    private void removeSurfaceCallbacks() {
+        if (textureView != null) {
+            textureView.setSurfaceTextureListener(null);
+            textureView = null;
+        }
+        if (surfaceHolder != null) {
+            surfaceHolder.removeCallback(getInternalListener());
+            surfaceHolder = null;
+        }
+    }
+
+    private void setVideoSurfaceInternal(@Nullable Surface surface, boolean ownsSurface) {
+        setSurface(surface);
+    }
+
+    @Override
+    public int getPlaybackState() {
+        return OnePlayer.STATE_IDLE;
     }
 
     @Override
@@ -118,6 +258,11 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     @Override
     public void setOnVideoSizeChangedListener(OnVideoSizeChangedListener onVideoSizeChangedListener) {
         mOnVideoSizeChangedListener = onVideoSizeChangedListener;
+    }
+
+    @Override
+    public void setOnPlayerStateChangedListener(OnPlaybackStateChangedListener onPlaybackStateChangedListener) {
+
     }
 
     protected final void notifyOnBufferingUpdate(final int percent) {
@@ -260,7 +405,19 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     }
 
-    protected abstract class PlayerListenerHolder<T extends AbsOnePlayer> {
+    private void maybeNotifySurfaceSizeChanged(int width, int height) {
+        if (width != surfaceWidth || height != surfaceHeight) {
+            surfaceWidth = width;
+            surfaceHeight = height;
+            for (VideoSurfaceListener videoSurfaceListener : mVideoSurfaceListeners) {
+                videoSurfaceListener.onSurfaceSizeChanged(width, height);
+            }
+        }
+    }
+
+    protected abstract class PlayerListenerHolder<T extends AbsOnePlayer> implements
+            SurfaceHolder.Callback,
+            TextureView.SurfaceTextureListener {
 
         private final WeakReference<T> mPlayerReference;
 
@@ -270,6 +427,46 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
         protected T getPlayer() {
             return mPlayerReference.get();
+        }
+
+        @Override
+        public void surfaceCreated(SurfaceHolder surfaceHolder) {
+            setVideoSurfaceInternal(surfaceHolder.getSurface(), false);
+        }
+
+        @Override
+        public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+            maybeNotifySurfaceSizeChanged(width, height);
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+            setVideoSurfaceInternal(null, false);
+            maybeNotifySurfaceSizeChanged(0, 0);
+        }
+
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+
+            setVideoSurfaceInternal(new Surface(surfaceTexture), true);
+            maybeNotifySurfaceSizeChanged(width, height);
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+            maybeNotifySurfaceSizeChanged(width, height);
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+            setVideoSurfaceInternal(null, true);
+            maybeNotifySurfaceSizeChanged(0,0);
+            return true;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+
         }
     }
 }

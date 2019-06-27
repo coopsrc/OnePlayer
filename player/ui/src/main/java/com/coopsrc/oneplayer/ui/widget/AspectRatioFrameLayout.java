@@ -2,9 +2,10 @@ package com.coopsrc.oneplayer.ui.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import androidx.annotation.IntDef;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
+
+import androidx.annotation.IntDef;
 
 import com.coopsrc.oneplayer.ui.R;
 
@@ -16,6 +17,8 @@ import java.lang.annotation.RetentionPolicy;
  * @author tingkuo
  * <p>
  * Date: 2019-05-10 16:25
+ * <p>
+ * A {@link FrameLayout} that resizes itself to match a specified aspect ratio.
  */
 public final class AspectRatioFrameLayout extends FrameLayout {
 

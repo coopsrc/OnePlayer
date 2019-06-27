@@ -1,5 +1,11 @@
 package com.coopsrc.oneplayer.core;
 
+import androidx.annotation.IntDef;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * @author tingkuo
  * <p>
@@ -62,11 +68,13 @@ interface IPlayerInfo {
     public static final int MEDIA_INFO_VIDEO_NOT_PLAYING = 805;
     public static final int MEDIA_INFO_VIDEO_RENDERING_START = 3;
     public static final int MEDIA_INFO_VIDEO_TRACK_LAGGING = 700;
+    public static final int STATE_IDLE = 1001;
+    public static final int STATE_PREPARED = 1002;
+    public static final int STATE_PAUSED = 1003;
+    public static final int STATE_PLAYING = 1004;
     public static final int PLAYER_STATE_ERROR = 1005;
-    public static final int PLAYER_STATE_IDLE = 1001;
-    public static final int PLAYER_STATE_PAUSED = 1003;
-    public static final int PLAYER_STATE_PLAYING = 1004;
-    public static final int PLAYER_STATE_PREPARED = 1002;
+    public static final int STATE_BUFFERING = 1006;
+    public static final int STATE_ENDED = 1007;
     public static final int PREPARE_DRM_STATUS_KEY_EXCHANGE_ERROR = 7;
     public static final int PREPARE_DRM_STATUS_PREPARATION_ERROR = 3;
     public static final int PREPARE_DRM_STATUS_PROVISIONING_NETWORK_ERROR = 1;
@@ -79,4 +87,73 @@ interface IPlayerInfo {
     public static final int SEEK_CLOSEST_SYNC = 2;
     public static final int SEEK_NEXT_SYNC = 1;
     public static final int SEEK_PREVIOUS_SYNC = 0;
+
+
+    /**
+     * Reasons for timeline and/or manifest changes. One of {@link #TIMELINE_CHANGE_REASON_PREPARED},
+     * {@link #TIMELINE_CHANGE_REASON_RESET} or {@link #TIMELINE_CHANGE_REASON_DYNAMIC}.
+     */
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            TIMELINE_CHANGE_REASON_PREPARED,
+            TIMELINE_CHANGE_REASON_RESET,
+            TIMELINE_CHANGE_REASON_DYNAMIC
+    })
+    @interface TimelineChangeReason {
+    }
+
+    /**
+     * Timeline and manifest changed as a result of a player initialization with new media.
+     */
+    int TIMELINE_CHANGE_REASON_PREPARED = 0;
+    /**
+     * Timeline and manifest changed as a result of a player reset.
+     */
+    int TIMELINE_CHANGE_REASON_RESET = 1;
+    /**
+     * Timeline or manifest changed as a result of an dynamic update introduced by the played media.
+     */
+    int TIMELINE_CHANGE_REASON_DYNAMIC = 2;
+
+
+    /**
+     * Reasons for position discontinuities. One of {@link #DISCONTINUITY_REASON_PERIOD_TRANSITION},
+     * {@link #DISCONTINUITY_REASON_SEEK}, {@link #DISCONTINUITY_REASON_SEEK_ADJUSTMENT}, {@link
+     * #DISCONTINUITY_REASON_AD_INSERTION} or {@link #DISCONTINUITY_REASON_INTERNAL}.
+     */
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({
+            DISCONTINUITY_REASON_PERIOD_TRANSITION,
+            DISCONTINUITY_REASON_SEEK,
+            DISCONTINUITY_REASON_SEEK_ADJUSTMENT,
+            DISCONTINUITY_REASON_AD_INSERTION,
+            DISCONTINUITY_REASON_INTERNAL
+    })
+    @interface DiscontinuityReason {
+    }
+
+    /**
+     * Automatic playback transition from one period in the timeline to the next. The period index may
+     * be the same as it was before the discontinuity in case the current period is repeated.
+     */
+    int DISCONTINUITY_REASON_PERIOD_TRANSITION = 0;
+    /**
+     * Seek within the current period or to another period.
+     */
+    int DISCONTINUITY_REASON_SEEK = 1;
+    /**
+     * Seek adjustment due to being unable to seek to the requested position or because the seek was
+     * permitted to be inexact.
+     */
+    int DISCONTINUITY_REASON_SEEK_ADJUSTMENT = 2;
+    /**
+     * Discontinuity to or from an ad within one period in the timeline.
+     */
+    int DISCONTINUITY_REASON_AD_INSERTION = 3;
+    /**
+     * Discontinuity introduced internally by the source.
+     */
+    int DISCONTINUITY_REASON_INTERNAL = 4;
 }

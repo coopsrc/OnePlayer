@@ -4,7 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.StringDef;
 
-import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.kernel.exo.OneExoPlayer;
 import com.coopsrc.oneplayer.kernel.ijkmedia.OneIjkPlayer;

@@ -11,10 +11,11 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
+import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.misc.OneTimedText;
-import com.coopsrc.oneplayer.core.utils.LogUtils;
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.kernel.media.misc.AndroidMediaDataSource;
 import com.coopsrc.oneplayer.kernel.media.misc.AndroidTrackInfo;
 
@@ -29,6 +30,10 @@ import java.util.Map;
  */
 public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     private static final String TAG = "OneMediaPlayer";
+
+    static {
+        PlayerLibraryInfo.registerModule("one.player.media");
+    }
 
     private final MediaPlayer mInternalPlayer;
     private final MediaPlayerListenerHolder mInternalAdapterListener;
@@ -96,7 +101,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
-    public void setDisplay(SurfaceHolder holder) {
+    protected void setDisplay(SurfaceHolder holder) {
         synchronized (mLock) {
             if (mInternalPlayer != null) {
                 mInternalPlayer.setDisplay(holder);
@@ -105,7 +110,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
-    public void setSurface(Surface surface) {
+    protected void setSurface(Surface surface) {
         synchronized (mLock) {
             if (mInternalPlayer != null) {
                 mInternalPlayer.setSurface(surface);
@@ -157,7 +162,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
             try {
                 mInternalPlayer.reset();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
             }
         }
 
@@ -200,7 +205,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
             try {
                 return mInternalPlayer.getCurrentPosition();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
                 return 0;
             }
         }
@@ -213,7 +218,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
             try {
                 return mInternalPlayer.getDuration();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
                 return 0;
             }
         }
@@ -226,7 +231,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
             try {
                 return mInternalPlayer.isPlaying();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
                 return false;
             }
         }
@@ -291,8 +296,28 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
+    public long getBufferedPosition() {
+        return 0;
+    }
+
+    @Override
+    public void setPlayWhenReady(boolean playWhenReady) {
+
+    }
+
+    @Override
+    public boolean getPlayWhenReady() {
+        return false;
+    }
+
+    @Override
     public MediaPlayer getInternalPlayer() {
         return mInternalPlayer;
+    }
+
+    @Override
+    protected PlayerListenerHolder getInternalListener() {
+        return mInternalAdapterListener;
     }
 
     @Override

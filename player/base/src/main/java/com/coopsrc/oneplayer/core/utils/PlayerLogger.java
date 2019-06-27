@@ -9,9 +9,9 @@ import timber.log.Timber;
  * <p>
  * Date: 2019-05-09 11:52
  */
-public class LogUtils {
+public class PlayerLogger {
 
-    private LogUtils() {
+    private PlayerLogger() {
         throw new UnsupportedOperationException(this.getClass().getSimpleName() + " cannot be instantiated");
     }
 

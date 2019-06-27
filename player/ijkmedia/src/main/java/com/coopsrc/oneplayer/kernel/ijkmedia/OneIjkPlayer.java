@@ -7,10 +7,11 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
+import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.misc.OneTimedText;
-import com.coopsrc.oneplayer.core.utils.LogUtils;
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.kernel.ijkmedia.misc.IjkMediaDataSource;
 import com.coopsrc.oneplayer.kernel.ijkmedia.misc.OneIjkTrackInfo;
 
@@ -29,6 +30,10 @@ import tv.danmaku.ijk.media.player.IjkTimedText;
  */
 public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     private static final String TAG = "OneIjkPlayer";
+
+    static {
+        PlayerLibraryInfo.registerModule("one.player.ijk");
+    }
 
     private final IjkMediaPlayer mInternalPlayer;
     private final IjkMediaPlayerListenerHolder mInternalAdapterListener;
@@ -50,6 +55,11 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     @Override
     public IjkMediaPlayer getInternalPlayer() {
         return mInternalPlayer;
+    }
+
+    @Override
+    protected PlayerListenerHolder getInternalListener() {
+        return mInternalAdapterListener;
     }
 
     @Override
@@ -89,7 +99,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
                 mInternalPlayer.setDataSource(path);
             } catch (IOException e) {
                 e.printStackTrace();
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
             }
         }
     }
@@ -117,7 +127,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     @Override
-    public void setDisplay(SurfaceHolder holder) {
+    protected void setDisplay(SurfaceHolder holder) {
         synchronized (mLock) {
             if (mInternalPlayer != null) {
                 mInternalPlayer.setDisplay(holder);
@@ -126,7 +136,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     @Override
-    public void setSurface(Surface surface) {
+    protected void setSurface(Surface surface) {
         synchronized (mLock) {
             if (mInternalPlayer != null) {
                 mInternalPlayer.setSurface(surface);
@@ -214,7 +224,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
             try {
                 return mInternalPlayer.getCurrentPosition();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
                 return 0;
             }
         }
@@ -227,7 +237,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
             try {
                 return mInternalPlayer.getDuration();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
                 return 0;
             }
         }
@@ -240,7 +250,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
             try {
                 return mInternalPlayer.isPlaying();
             } catch (IllegalStateException e) {
-                LogUtils.e(TAG, e.getMessage());
+                PlayerLogger.e(TAG, e.getMessage());
                 return false;
             }
         }
@@ -301,6 +311,16 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     @Override
     public int getAudioSessionId() {
         return mInternalPlayer.getAudioSessionId();
+    }
+
+    @Override
+    public void setPlayWhenReady(boolean playWhenReady) {
+
+    }
+
+    @Override
+    public boolean getPlayWhenReady() {
+        return false;
     }
 
     private class IjkMediaPlayerListenerHolder extends PlayerListenerHolder<OneIjkPlayer> implements

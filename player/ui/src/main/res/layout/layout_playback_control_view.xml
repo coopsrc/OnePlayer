@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00000000">
+    android:background="@android:color/transparent"
+    tools:context="com.coopsrc.oneplayer.ui.PlayerControlView">
 
     <View
         android:id="@+id/player_menu_bar_background_view"
@@ -41,57 +42,56 @@
 
 
     <ImageButton
-        android:id="@+id/button_skip_previous"
+        android:id="@id/button_skip_previous"
         style="@style/MediaButton.SkipPrevious"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button_fast_rewind"
+        app:layout_constraintEnd_toStartOf="@id/button_fast_rewind"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/button_fast_rewind"
+        android:id="@id/button_fast_rewind"
         style="@style/MediaButton.FastRewind"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button_play_pause"
+        app:layout_constraintEnd_toStartOf="@id/button_play_pause"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/button_skip_previous"
+        app:layout_constraintStart_toEndOf="@id/button_skip_previous"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/button_play_pause"
+        android:id="@id/button_play_pause"
         style="@style/MediaButton.Play"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button_fast_forward"
+        app:layout_constraintEnd_toStartOf="@id/button_fast_forward"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/button_fast_rewind"
+        app:layout_constraintStart_toEndOf="@id/button_fast_rewind"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/button_fast_forward"
+        android:id="@id/button_fast_forward"
         style="@style/MediaButton.FastForward"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button_skip_next"
+        app:layout_constraintEnd_toStartOf="@id/button_skip_next"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/button_play_pause"
+        app:layout_constraintStart_toEndOf="@id/button_play_pause"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/button_skip_next"
+        android:id="@id/button_skip_next"
         style="@style/MediaButton.SkipNext"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/button_fast_forward"
+        app:layout_constraintStart_toEndOf="@id/button_fast_forward"
         app:layout_constraintTop_toTopOf="parent" />
-
 
     <View
         android:id="@+id/player_progress_bar_background_view"
@@ -103,21 +103,21 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/text_position"
+        android:id="@id/text_position"
         style="@style/MediaTime"
         android:layout_marginStart="8dp"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/progress"
-        app:layout_constraintEnd_toStartOf="@+id/progress"
+        app:layout_constraintBottom_toBottomOf="@+id/progress_bar"
+        app:layout_constraintEnd_toStartOf="@+id/progress_bar"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/progress"
+        app:layout_constraintTop_toTopOf="@+id/progress_bar"
         tools:text="01:12:40" />
 
-    <SeekBar
-        android:id="@+id/progress"
+    <com.coopsrc.oneplayer.ui.widget.ProgressTimeBar
+        android:id="@+id/progress_bar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -130,15 +130,15 @@
         app:layout_constraintStart_toEndOf="@+id/text_position" />
 
     <TextView
-        android:id="@+id/text_duration"
+        android:id="@id/text_duration"
         style="@style/MediaTime"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/progress"
+        app:layout_constraintBottom_toBottomOf="@+id/progress_bar"
         app:layout_constraintEnd_toStartOf="@+id/button_fullscreen"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/progress"
-        app:layout_constraintTop_toTopOf="@+id/progress"
+        app:layout_constraintStart_toEndOf="@+id/progress_bar"
+        app:layout_constraintTop_toTopOf="@+id/progress_bar"
         tools:text="01:52:59" />
 
     <ImageButton
@@ -161,24 +161,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/group_action"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="button_skip_previous,button_fast_rewind,button_play_pause,button_fast_forward,button_skip_next"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/group_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="player_progress_bar_background_view,text_position,progress,text_duration,button_fullscreen"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</merge>

@@ -1,69 +1,129 @@
 package com.coopsrc.oneplayer.ui;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.Group;
+import android.content.res.TypedArray;
+import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.MediaController;
-import android.widget.SeekBar;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
+import com.coopsrc.oneplayer.core.ControlDispatcher;
+import com.coopsrc.oneplayer.core.DefaultControlDispatcher;
 import com.coopsrc.oneplayer.core.OnePlayer;
-import com.coopsrc.oneplayer.core.misc.ITimedText;
-import com.coopsrc.oneplayer.core.utils.LogUtils;
+import com.coopsrc.oneplayer.core.PlaybackPreparer;
+import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
+import com.coopsrc.oneplayer.core.utils.Constants;
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
+import com.coopsrc.oneplayer.ui.widget.ProgressTimeBar;
+
+import java.util.Formatter;
+import java.util.Locale;
 
 /**
  * @author tingkuo
  * <p>
  * Date: 2019-05-10 16:40
  */
-public class PlayerControlView extends ConstraintLayout implements MediaController.MediaPlayerControl {
+public class PlayerControlView extends ConstraintLayout {
     private static final String TAG = "PlayerControlView";
 
-    private ImageButton mButtonTinyWindow;
-    private ImageButton mButtonAddPlaylist;
-    private ImageButton mButtonSkipPrevious;
-    private ImageButton mButtonFastRewind;
-    private ImageButton mButtonPlayPause;
-    private ImageButton mButtonFastForward;
-    private ImageButton mButtonSkipNext;
-    private ImageButton mButtonMenuMore;
-    private TextView mTextPosition;
-    private SeekBar mProgressBar;
-    private TextView mTextDuration;
-    private ImageButton mButtonFullscreen;
+    static {
+        PlayerLibraryInfo.registerModule("one.player.ui");
+    }
 
-    private boolean mCanPause = true;
-    private boolean mCanSeekBackward = true;
-    private boolean mCanSeekForward = true;
+    /**
+     * Listener to be notified about changes of the visibility of the UI control.
+     */
+    public interface VisibilityListener {
 
-    private boolean mIsFullscreen = false;
+        /**
+         * Called when the visibility changes.
+         *
+         * @param visibility The new visibility. Either {@link View#VISIBLE} or {@link View#GONE}.
+         */
+        void onVisibilityChange(int visibility);
+    }
 
-    private OnePlayer mPlayer;
-    private PlayerControlListener mControlListener;
-    private PlayerEventListener mPlayerEventListener;
+    /**
+     * Listener to be notified when progress has been updated.
+     */
+    public interface ProgressUpdateListener {
 
-    private Group mGroupMenuBar;
-    private Group mGroupActionBar;
-    private Group mGroupProgressBar;
+        /**
+         * Called when progress needs to be updated.
+         *
+         * @param position         The current position.
+         * @param bufferedPosition The current buffered position.
+         */
+        void onProgressUpdate(long position, long bufferedPosition);
+    }
 
-    private boolean isControlsShown = true;
-    private boolean isControlsAutoDismiss = true;
+    /**
+     * The default fast forward increment, in milliseconds.
+     */
+    public static final int DEFAULT_FAST_FORWARD_MS = 15000;
+    /**
+     * The default rewind increment, in milliseconds.
+     */
+    public static final int DEFAULT_REWIND_MS = 5000;
+    /**
+     * The default show timeout, in milliseconds.
+     */
+    public static final int DEFAULT_SHOW_TIMEOUT_MS = 5000;
+    /**
+     * The default minimum interval between time bar position updates.
+     */
+    public static final int DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS = 200;
+    /**
+     * The maximum number of windows that can be shown in a multi-window time bar.
+     */
+    public static final int MAX_WINDOWS_FOR_MULTI_WINDOW_TIME_BAR = 100;
 
-    private static final int MSG_SHOW_CONTROLS = 100;
-    private static final int MSG_DISMISS_CONTROLS = 101;
-    private static final int MSG_UPDATE_BUFFERING_POSITION = 0;
-    private static final int MSG_UPDATE_CURRENT_POSITION = 2;
-    private PlayerControlHandler mControlHandler = new PlayerControlHandler();
+    private static final long MAX_POSITION_FOR_SEEK_TO_PREVIOUS = 3000;
+    /**
+     * The maximum interval between time bar position updates.
+     */
+    private static final int MAX_UPDATE_INTERVAL_MS = 1000;
+
+    private final ComponentListener componentListener;
+    private final View previousButton;
+    private final View nextButton;
+    private final View playPauseButton;
+    private final View fastForwardButton;
+    private final View rewindButton;
+    private final TextView durationView;
+    private final TextView positionView;
+    private final TimeBar timeBar;
+    private final StringBuilder formatBuilder;
+    private final Formatter formatter;
+    private final Runnable updateProgressAction;
+    private final Runnable hideAction;
+
+    @Nullable
+    private OnePlayer player;
+    private ControlDispatcher controlDispatcher;
+    @Nullable
+    private VisibilityListener visibilityListener;
+    @Nullable
+    private ProgressUpdateListener progressUpdateListener;
+    @Nullable
+    private PlaybackPreparer playbackPreparer;
+
+    private boolean isAttachedToWindow;
+    private boolean scrubbing;
+    private int rewindMs;
+    private int fastForwardMs;
+    private int showTimeoutMs;
+    private int timeBarMinUpdateIntervalMs;
+    private long hideAtMs;
 
     public PlayerControlView(Context context) {
         this(context, null);
@@ -74,322 +134,585 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
     }
 
     public PlayerControlView(Context context, AttributeSet attrs, int defStyleAttr) {
+        this(context, attrs, defStyleAttr, attrs);
+    }
+
+    public PlayerControlView(
+            Context context, AttributeSet attrs, int defStyleAttr, AttributeSet playbackAttrs) {
         super(context, attrs, defStyleAttr);
-        LayoutInflater.from(context).inflate(R.layout.layout_player_control_view, this);
-
-        mButtonTinyWindow = findViewById(R.id.button_tiny_window);
-        mButtonAddPlaylist = findViewById(R.id.button_playlist_add);
-        mButtonMenuMore = findViewById(R.id.button_menu_more);
-
-        mButtonSkipPrevious = findViewById(R.id.button_skip_previous);
-        mButtonFastRewind = findViewById(R.id.button_fast_rewind);
-        mButtonPlayPause = findViewById(R.id.button_play_pause);
-        mButtonFastForward = findViewById(R.id.button_fast_forward);
-        mButtonSkipNext = findViewById(R.id.button_skip_next);
-
-        mTextPosition = findViewById(R.id.text_position);
-        mProgressBar = findViewById(R.id.progress);
-        mTextDuration = findViewById(R.id.text_duration);
-        mButtonFullscreen = findViewById(R.id.button_fullscreen);
-
-        mControlListener = new PlayerControlListener();
-        mPlayerEventListener = new PlayerEventListener();
-
-        mButtonTinyWindow.setOnClickListener(mControlListener);
-        mButtonAddPlaylist.setOnClickListener(mControlListener);
-        mButtonMenuMore.setOnClickListener(mControlListener);
-
-        mButtonSkipPrevious.setOnClickListener(mControlListener);
-        mButtonFastRewind.setOnClickListener(mControlListener);
-        mButtonPlayPause.setOnClickListener(mControlListener);
-        mButtonFastForward.setOnClickListener(mControlListener);
-        mButtonSkipNext.setOnClickListener(mControlListener);
-
-        mButtonFullscreen.setOnClickListener(mControlListener);
-
-        mGroupMenuBar = findViewById(R.id.group_menu);
-        mGroupActionBar = findViewById(R.id.group_action);
-        mGroupProgressBar = findViewById(R.id.group_progress);
-
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        Log.w(TAG, "onTouchEvent: ");
-
-        if (isControlsShown) {
-            mControlHandler.sendEmptyMessage(MSG_DISMISS_CONTROLS);
-        } else {
-            mControlHandler.sendEmptyMessage(MSG_SHOW_CONTROLS);
+        int controllerLayoutId = R.layout.layout_playback_control_view;
+        rewindMs = DEFAULT_REWIND_MS;
+        fastForwardMs = DEFAULT_FAST_FORWARD_MS;
+        showTimeoutMs = DEFAULT_SHOW_TIMEOUT_MS;
+        timeBarMinUpdateIntervalMs = DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS;
+        hideAtMs = Constants.TIME_UNSET;
+        if (playbackAttrs != null) {
+            TypedArray a = context.getTheme().obtainStyledAttributes(playbackAttrs, R.styleable.PlayerControlView, 0, 0);
+            try {
+                rewindMs = a.getInt(R.styleable.PlayerControlView_rewind_increment, rewindMs);
+                fastForwardMs = a.getInt(R.styleable.PlayerControlView_fastforward_increment, fastForwardMs);
+                showTimeoutMs = a.getInt(R.styleable.PlayerControlView_show_timeout, showTimeoutMs);
+                controllerLayoutId = a.getResourceId(R.styleable.PlayerControlView_controller_layout_id, controllerLayoutId);
+                setTimeBarMinUpdateInterval(a.getInt(R.styleable.PlayerControlView_time_bar_min_update_interval, timeBarMinUpdateIntervalMs));
+            } finally {
+                a.recycle();
+            }
         }
+        formatBuilder = new StringBuilder();
+        formatter = new Formatter(formatBuilder, Locale.getDefault());
+        componentListener = new ComponentListener();
+        controlDispatcher = new DefaultControlDispatcher();
+        updateProgressAction = this::updateProgress;
+        hideAction = this::hide;
 
-        return super.onTouchEvent(event);
+        LayoutInflater.from(context).inflate(controllerLayoutId, this);
+        setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
+
+        TimeBar customTimeBar = findViewById(R.id.progress_bar);
+        View timeBarPlaceholder = findViewById(R.id.progress_bar_placeholder);
+        if (customTimeBar != null) {
+            timeBar = customTimeBar;
+        } else if (timeBarPlaceholder != null) {
+            // Propagate attrs as timebarAttrs so that DefaultTimeBar's custom attributes are transferred,
+            // but standard attributes (e.g. background) are not.
+            ProgressTimeBar defaultTimeBar = new ProgressTimeBar(context, null, 0);
+            defaultTimeBar.setId(R.id.progress_bar);
+            defaultTimeBar.setLayoutParams(timeBarPlaceholder.getLayoutParams());
+            ViewGroup parent = ((ViewGroup) timeBarPlaceholder.getParent());
+            int timeBarIndex = parent.indexOfChild(timeBarPlaceholder);
+            parent.removeView(timeBarPlaceholder);
+            parent.addView(defaultTimeBar, timeBarIndex);
+            timeBar = defaultTimeBar;
+        } else {
+            timeBar = null;
+        }
+        durationView = findViewById(R.id.text_duration);
+        positionView = findViewById(R.id.text_position);
+
+        if (timeBar != null) {
+            timeBar.addListener(componentListener);
+        }
+        playPauseButton = findViewById(R.id.button_play_pause);
+        if (playPauseButton != null) {
+            playPauseButton.setOnClickListener(componentListener);
+        }
+        previousButton = findViewById(R.id.button_skip_previous);
+        if (previousButton != null) {
+            previousButton.setOnClickListener(componentListener);
+        }
+        nextButton = findViewById(R.id.button_skip_next);
+        if (nextButton != null) {
+            nextButton.setOnClickListener(componentListener);
+        }
+        rewindButton = findViewById(R.id.button_fast_rewind);
+        if (rewindButton != null) {
+            rewindButton.setOnClickListener(componentListener);
+        }
+        fastForwardButton = findViewById(R.id.button_fast_forward);
+        if (fastForwardButton != null) {
+            fastForwardButton.setOnClickListener(componentListener);
+        }
     }
 
+
+    /**
+     * Returns the {@link OnePlayer} currently being controlled by this view, or null if no player is
+     * set.
+     */
+    @Nullable
     public OnePlayer getPlayer() {
-        return mPlayer;
+        return player;
     }
 
-    public void setPlayer(OnePlayer player) {
-
-        if (mPlayer == player) {
+    /**
+     * Sets the {@link OnePlayer} to control.
+     *
+     * @param player The {@link OnePlayer} to control, or {@code null} to detach the current player. Only
+     *               players which are accessed on the main thread are supported ({@code
+     *               player.getApplicationLooper() == Looper.getMainLooper()}).
+     */
+    public void setPlayer(@Nullable OnePlayer player) {
+        if (this.player == player) {
             return;
         }
-
-        if (mPlayer != null) {
-            mPlayer.removeListener(mPlayerEventListener);
+        if (this.player != null) {
+            this.player.removeListener(componentListener);
         }
-
-        mPlayer = player;
-
+        this.player = player;
         if (player != null) {
-            player.addListener(mPlayerEventListener);
+            player.addListener(componentListener);
         }
-
         updateAll();
     }
 
-    private void updateAll() {
-
+    /**
+     * Sets the {@link VisibilityListener}.
+     *
+     * @param listener The listener to be notified about visibility changes.
+     */
+    public void setVisibilityListener(@Nullable VisibilityListener listener) {
+        this.visibilityListener = listener;
     }
 
-    public void togglePlayPause() {
-        if (isPlaying()) {
-            pause();
-            mButtonPlayPause.setImageResource(R.drawable.ic_play_arrow_white_24dp);
-            mButtonPlayPause.setContentDescription(getResources().getString(R.string.button_description_play_arrow));
-        } else {
-            start();
-            mButtonPlayPause.setImageResource(R.drawable.ic_pause_white_24dp);
-            mButtonPlayPause.setContentDescription(getResources().getString(R.string.button_description_pause));
+    /**
+     * Sets the {@link ProgressUpdateListener}.
+     *
+     * @param listener The listener to be notified about when progress is updated.
+     */
+    public void setProgressUpdateListener(@Nullable ProgressUpdateListener listener) {
+        this.progressUpdateListener = listener;
+    }
+
+    /**
+     * Sets the {@link PlaybackPreparer}.
+     *
+     * @param playbackPreparer The {@link PlaybackPreparer}.
+     */
+    public void setPlaybackPreparer(@Nullable PlaybackPreparer playbackPreparer) {
+        this.playbackPreparer = playbackPreparer;
+    }
+
+    /**
+     * Sets the {@link ControlDispatcher}.
+     *
+     * @param controlDispatcher The {@link ControlDispatcher}, or null to use {@link DefaultControlDispatcher}.
+     */
+    public void setControlDispatcher(@Nullable ControlDispatcher controlDispatcher) {
+        this.controlDispatcher = controlDispatcher == null ? new DefaultControlDispatcher() : controlDispatcher;
+    }
+
+    /**
+     * Sets the rewind increment in milliseconds.
+     *
+     * @param rewindMs The rewind increment in milliseconds. A non-positive value will cause the
+     *                 rewind button to be disabled.
+     */
+    public void setRewindIncrementMs(int rewindMs) {
+        this.rewindMs = rewindMs;
+        updateNavigation();
+    }
+
+    /**
+     * Sets the fast forward increment in milliseconds.
+     *
+     * @param fastForwardMs The fast forward increment in milliseconds. A non-positive value will
+     *                      cause the fast forward button to be disabled.
+     */
+    public void setFastForwardIncrementMs(int fastForwardMs) {
+        this.fastForwardMs = fastForwardMs;
+        updateNavigation();
+    }
+
+    /**
+     * Returns the playback controls timeout. The playback controls are automatically hidden after
+     * this duration of time has elapsed without user input.
+     *
+     * @return The duration in milliseconds. A non-positive value indicates that the controls will
+     * remain visible indefinitely.
+     */
+    public int getShowTimeoutMs() {
+        return showTimeoutMs;
+    }
+
+    /**
+     * Sets the playback controls timeout. The playback controls are automatically hidden after this
+     * duration of time has elapsed without user input.
+     *
+     * @param showTimeoutMs The duration in milliseconds. A non-positive value will cause the controls
+     *                      to remain visible indefinitely.
+     */
+    public void setShowTimeoutMs(int showTimeoutMs) {
+        this.showTimeoutMs = showTimeoutMs;
+        if (isVisible()) {
+            // Reset the timeout.
+            hideAfterTimeout();
         }
     }
 
-    public void switchFullscreen() {
-        Activity activity = PlayerUtils.scanForActivity(getContext());
-        if (activity == null) {
+    /**
+     * Sets the minimum interval between time bar position updates.
+     *
+     * <p>Note that smaller intervals, e.g. 33ms, will result in a smooth movement but will use more
+     * CPU resources while the time bar is visible, whereas larger intervals, e.g. 200ms, will result
+     * in a step-wise update with less CPU usage.
+     *
+     * @param minUpdateIntervalMs The minimum interval between time bar position updates, in
+     *                            milliseconds.
+     */
+    public void setTimeBarMinUpdateInterval(int minUpdateIntervalMs) {
+        // Do not accept values below 16ms (60fps) and larger than the maximum update interval.
+        timeBarMinUpdateIntervalMs = PlayerUtils.constrainValue(minUpdateIntervalMs, 16, MAX_UPDATE_INTERVAL_MS);
+    }
+
+    /**
+     * Shows the playback controls. If {@link #getShowTimeoutMs()} is positive then the controls will
+     * be automatically hidden after this duration of time has elapsed without user input.
+     */
+    public void show() {
+        if (!isVisible()) {
+            setVisibility(VISIBLE);
+            if (visibilityListener != null) {
+                visibilityListener.onVisibilityChange(getVisibility());
+            }
+            updateAll();
+            requestPlayPauseFocus();
+        }
+        // Call hideAfterTimeout even if already visible to reset the timeout.
+        hideAfterTimeout();
+    }
+
+    /**
+     * Hides the controller.
+     */
+    public void hide() {
+        if (isVisible()) {
+            setVisibility(GONE);
+            if (visibilityListener != null) {
+                visibilityListener.onVisibilityChange(getVisibility());
+            }
+            removeCallbacks(updateProgressAction);
+            removeCallbacks(hideAction);
+            hideAtMs = Constants.TIME_UNSET;
+        }
+    }
+
+    /**
+     * Returns whether the controller is currently visible.
+     */
+    public boolean isVisible() {
+        return getVisibility() == VISIBLE;
+    }
+
+    private void hideAfterTimeout() {
+        removeCallbacks(hideAction);
+        if (showTimeoutMs > 0) {
+            hideAtMs = SystemClock.uptimeMillis() + showTimeoutMs;
+            if (isAttachedToWindow) {
+                postDelayed(hideAction, showTimeoutMs);
+            }
+        } else {
+            hideAtMs = Constants.TIME_UNSET;
+        }
+    }
+
+    private void updateAll() {
+        updatePlayPauseButton();
+        updateNavigation();
+        updateTimeline();
+    }
+
+    private void updatePlayPauseButton() {
+        if (!isVisible() || !isAttachedToWindow) {
             return;
         }
-        if (mIsFullscreen) {
-            PlayerUtils.showActionBar(getContext());
-            mIsFullscreen = false;
-        } else {
-            PlayerUtils.hideActionBar(getContext());
+        boolean requestPlayPauseFocus = false;
+        boolean playing = isPlaying();
+        if (playPauseButton != null) {
+            requestPlayPauseFocus |= playing && playPauseButton.isFocused();
+            playPauseButton.setVisibility(playing ? GONE : VISIBLE);
+        }
+        if (requestPlayPauseFocus) {
+            requestPlayPauseFocus();
+        }
+    }
 
-            mIsFullscreen = true;
+    private void updateNavigation() {
+        if (!isVisible() || !isAttachedToWindow) {
+            return;
+        }
+        boolean enableSeeking = false;
+        boolean enablePrevious = false;
+        boolean enableRewind = false;
+        boolean enableFastForward = false;
+        boolean enableNext = false;
+
+        setButtonEnabled(enablePrevious, previousButton);
+        setButtonEnabled(enableRewind, rewindButton);
+        setButtonEnabled(enableFastForward, fastForwardButton);
+        setButtonEnabled(enableNext, nextButton);
+        if (timeBar != null) {
+            timeBar.setEnabled(enableSeeking);
+        }
+    }
+
+
+    private void updateTimeline() {
+        if (player == null) {
+            return;
+        }
+        long durationUs = player.getDuration();
+
+        long durationMs = Constants.usToMs(durationUs);
+        if (durationView != null) {
+            durationView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, durationMs));
+        }
+        if (timeBar != null) {
+            timeBar.setDuration(durationMs);
+        }
+        updateProgress();
+    }
+
+    private void updateProgress() {
+        if (!isVisible() || !isAttachedToWindow) {
+            return;
+        }
+
+        long position = 0;
+        long bufferedPosition = 0;
+        if (player != null) {
+            position = player.getCurrentPosition();
+            bufferedPosition = player.getBufferedPosition();
+        }
+        if (positionView != null && !scrubbing) {
+            positionView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, position));
+        }
+        if (timeBar != null) {
+            timeBar.setPosition(position);
+            timeBar.setBufferedPosition(bufferedPosition);
+        }
+        if (progressUpdateListener != null) {
+            progressUpdateListener.onProgressUpdate(position, bufferedPosition);
+        }
+
+        // Cancel any pending updates and schedule a new one if necessary.
+        removeCallbacks(updateProgressAction);
+        int playbackState = player == null ? OnePlayer.STATE_IDLE : player.getPlaybackState();
+        if (playbackState == OnePlayer.STATE_PREPARED && player.getPlayWhenReady()) {
+            long mediaTimeDelayMs = timeBar != null ? timeBar.getPreferredUpdateDelay() : MAX_UPDATE_INTERVAL_MS;
+
+            // Limit delay to the start of the next full second to ensure position display is smooth.
+            long mediaTimeUntilNextFullSecondMs = 1000 - position % 1000;
+            mediaTimeDelayMs = Math.min(mediaTimeDelayMs, mediaTimeUntilNextFullSecondMs);
+
+            // Calculate the delay until the next update in real time, taking playbackSpeed into account.
+            long delayMs = mediaTimeDelayMs;
+
+            // Constrain the delay to avoid too frequent / infrequent updates.
+            delayMs = PlayerUtils.constrainValue(delayMs, timeBarMinUpdateIntervalMs, MAX_UPDATE_INTERVAL_MS);
+            postDelayed(updateProgressAction, delayMs);
+        } else if (playbackState != OnePlayer.STATE_ENDED && playbackState != OnePlayer.STATE_IDLE) {
+            postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
+        }
+    }
+
+    private void requestPlayPauseFocus() {
+        if (playPauseButton != null) {
+            playPauseButton.requestFocus();
+        }
+    }
+
+    private void setButtonEnabled(boolean enabled, View view) {
+        if (view == null) {
+            return;
+        }
+        view.setEnabled(enabled);
+        view.setAlpha(enabled ? 1f : 0.3f);
+        view.setVisibility(VISIBLE);
+    }
+
+    private void previous(OnePlayer player) {
+
+    }
+
+    private void next(OnePlayer player) {
+
+    }
+
+    private void rewind(OnePlayer player) {
+        if (rewindMs > 0) {
+            seekTo(player, player.getCurrentPosition() - rewindMs);
+        }
+    }
+
+    private void fastForward(OnePlayer player) {
+        if (fastForwardMs > 0) {
+            seekTo(player, player.getCurrentPosition() + fastForwardMs);
+        }
+    }
+
+
+    private boolean seekTo(OnePlayer player, long positionMs) {
+        long durationMs = player.getDuration();
+        if (durationMs != Constants.TIME_UNSET) {
+            positionMs = Math.min(positionMs, durationMs);
+        }
+        positionMs = Math.max(positionMs, 0);
+        return controlDispatcher.dispatchSeekTo(player, positionMs);
+    }
+
+    private void seekToTimeBarPosition(OnePlayer player, long positionMs) {
+        boolean dispatched = seekTo(player, positionMs);
+        if (!dispatched) {
+            // The seek wasn't dispatched then the progress bar scrubber will be in the wrong position.
+            // Trigger a progress update to snap it back.
+            updateProgress();
         }
     }
 
     @Override
-    public void start() {
-        if (mPlayer != null) {
-            mPlayer.start();
-            mControlHandler.removeMessages(MSG_UPDATE_CURRENT_POSITION);
-            mControlHandler.sendEmptyMessage(MSG_UPDATE_CURRENT_POSITION);
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        isAttachedToWindow = true;
+        if (hideAtMs != Constants.TIME_UNSET) {
+            long delayMs = hideAtMs - SystemClock.uptimeMillis();
+            if (delayMs <= 0) {
+                hide();
+            } else {
+                postDelayed(hideAction, delayMs);
+            }
+        } else if (isVisible()) {
+            hideAfterTimeout();
         }
+        updateAll();
     }
 
     @Override
-    public void pause() {
-        if (mPlayer != null) {
-            mPlayer.pause();
-            mControlHandler.removeMessages(MSG_UPDATE_CURRENT_POSITION);
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        isAttachedToWindow = false;
+        removeCallbacks(updateProgressAction);
+        removeCallbacks(hideAction);
+    }
+
+    @Override
+    public final boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            removeCallbacks(hideAction);
+        } else if (ev.getAction() == MotionEvent.ACTION_UP) {
+            hideAfterTimeout();
         }
+        return super.dispatchTouchEvent(ev);
     }
 
     @Override
-    public int getDuration() {
-        if (mPlayer != null) {
-            return (int) mPlayer.getDuration();
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        return dispatchMediaKeyEvent(event) || super.dispatchKeyEvent(event);
+    }
+
+    /**
+     * Called to process media key events. Any {@link KeyEvent} can be passed but only media key
+     * events will be handled.
+     *
+     * @param event A key event.
+     * @return Whether the key event was handled.
+     */
+    public boolean dispatchMediaKeyEvent(KeyEvent event) {
+        int keyCode = event.getKeyCode();
+        if (player == null || !isHandledMediaKey(keyCode)) {
+            return false;
         }
-        return 0;
-    }
-
-    @Override
-    public int getCurrentPosition() {
-        if (mPlayer != null) {
-            return (int) mPlayer.getCurrentPosition();
-        }
-        return 0;
-    }
-
-    public int getBufferedPosition() {
-        LogUtils.d(TAG, "getBufferedPosition: [%s,%s]", getDuration(), getBufferPercentage());
-        if (mPlayer != null) {
-            return getDuration() * getBufferPercentage() / 100;
-        }
-
-        return 0;
-    }
-
-    @Override
-    public void seekTo(int pos) {
-        if (mPlayer != null) {
-            mPlayer.seekTo(pos);
-        }
-
-    }
-
-    @Override
-    public boolean isPlaying() {
-        if (mPlayer != null) {
-            return mPlayer.isPlaying();
-        }
-        return false;
-    }
-
-    @Override
-    public int getBufferPercentage() {
-        if (mPlayer != null) {
-            return mPlayer.getBufferedPercentage();
-        }
-        return 0;
-    }
-
-    @Override
-    public boolean canPause() {
-        return mCanPause;
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return mCanSeekBackward;
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return mCanSeekForward;
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        if (mPlayer != null) {
-            mPlayer.getAudioSessionId();
-        }
-        return 0;
-    }
-
-    private void showControls() {
-        Log.i(TAG, "showControls: ");
-
-        mGroupMenuBar.setVisibility(VISIBLE);
-        mGroupActionBar.setVisibility(VISIBLE);
-        mGroupProgressBar.setVisibility(VISIBLE);
-
-        isControlsShown = true;
-    }
-
-    private void dismissControls() {
-        Log.i(TAG, "dismissControls: ");
-
-        mGroupMenuBar.setVisibility(GONE);
-        mGroupActionBar.setVisibility(GONE);
-        mGroupProgressBar.setVisibility(GONE);
-
-        isControlsShown = false;
-    }
-
-    private final class PlayerControlListener implements OnClickListener {
-
-        @Override
-        public void onClick(View view) {
-            mControlHandler.removeMessages(MSG_DISMISS_CONTROLS);
-            mControlHandler.sendEmptyMessageDelayed(MSG_DISMISS_CONTROLS, 3000);
-            if (mPlayer != null) {
-                if (mButtonPlayPause == view) {
-                    togglePlayPause();
-                } else if (mButtonFullscreen == view) {
-                    switchFullscreen();
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD) {
+                fastForward(player);
+            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_REWIND) {
+                rewind(player);
+            } else if (event.getRepeatCount() == 0) {
+                switch (keyCode) {
+                    case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                        controlDispatcher.dispatchSetPlayWhenReady(player, !player.getPlayWhenReady());
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PLAY:
+                        controlDispatcher.dispatchSetPlayWhenReady(player, true);
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                        controlDispatcher.dispatchSetPlayWhenReady(player, false);
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_NEXT:
+                        next(player);
+                        break;
+                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                        previous(player);
+                        break;
+                    default:
+                        break;
                 }
             }
         }
+        return true;
     }
 
-    private final class PlayerControlHandler extends Handler {
+    private boolean isPlaying() {
+        return player != null
+                && player.getPlaybackState() != OnePlayer.STATE_ENDED
+                && player.getPlaybackState() != OnePlayer.STATE_IDLE
+                && player.getPlayWhenReady();
+    }
+
+    private static boolean isHandledMediaKey(int keyCode) {
+        return keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+                || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE
+                || keyCode == KeyEvent.KEYCODE_MEDIA_NEXT
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS;
+    }
+
+
+    private final class ComponentListener implements OnePlayer.EventListener, TimeBar.OnScrubListener, OnClickListener {
+
         @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-
-            switch (msg.what) {
-                case MSG_SHOW_CONTROLS:
-                    showControls();
-                    if (isControlsAutoDismiss) {
-                        mControlHandler.removeMessages(MSG_DISMISS_CONTROLS);
-                        mControlHandler.sendEmptyMessageDelayed(MSG_DISMISS_CONTROLS, 3000);
-                    }
-                    break;
-                case MSG_DISMISS_CONTROLS:
-                    dismissControls();
-                    break;
-                case MSG_UPDATE_BUFFERING_POSITION:
-                    LogUtils.i(TAG, "BUFFERING: [%s,%s,%s]", getCurrentPosition(), getBufferedPosition(), getDuration());
-                    mProgressBar.setSecondaryProgress(getBufferedPosition());
-                    break;
-                case MSG_UPDATE_CURRENT_POSITION:
-                    mProgressBar.setProgress(getCurrentPosition());
-
-                    mTextPosition.setText(PlayerUtils.formatPlayingTime(getCurrentPosition()));
-
-                    mControlHandler.sendEmptyMessageDelayed(MSG_UPDATE_CURRENT_POSITION, 500);
-                    break;
+        public void onScrubStart(TimeBar timeBar, long position) {
+            PlayerLogger.i(TAG, "onScrubStart: [%s: %s]", timeBar, position);
+            scrubbing = true;
+            if (positionView != null) {
+                positionView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, position));
             }
         }
-    }
-
-    private final class PlayerEventListener implements OnePlayer.EventListener {
 
         @Override
-        public void onBufferingUpdate(OnePlayer player, int percent) {
-            LogUtils.i(TAG, "onBufferingUpdate: %s", percent);
-            mControlHandler.sendEmptyMessage(MSG_UPDATE_BUFFERING_POSITION);
+        public void onScrubMove(TimeBar timeBar, long position) {
+            PlayerLogger.i(TAG, "onScrubMove: [%s: %s]", timeBar, position);
+            if (positionView != null) {
+                positionView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, position));
+            }
         }
 
         @Override
-        public void onCompletion(OnePlayer player) {
-            LogUtils.i(TAG, "onCompletion: ");
+        public void onScrubStop(TimeBar timeBar, long position, boolean canceled) {
+            PlayerLogger.i(TAG, "onScrubStop: [%s: %s] %s", timeBar, position, canceled);
+            scrubbing = false;
+            if (!canceled && player != null) {
+                seekToTimeBarPosition(player, position);
+            }
         }
 
         @Override
-        public boolean onError(OnePlayer player, int what, int extra) {
-            LogUtils.i(TAG, "onError: [%s,%s]", what, extra);
-            return false;
+        public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
+            PlayerLogger.i(TAG, "onPlaybackStateChanged: [%s: %s]", playWhenReady, playbackState);
+            updatePlayPauseButton();
+            updateProgress();
         }
 
         @Override
-        public boolean onInfo(OnePlayer player, int what, int extra) {
-            LogUtils.i(TAG, "onInfo: [%s,%s]", what, extra);
-            return false;
-        }
-
-        @Override
-        public void onPrepared(OnePlayer player) {
-            LogUtils.i(TAG, "onPrepared: ");
-            mProgressBar.setMax(getDuration());
-            mProgressBar.setProgress(getCurrentPosition());
-
-            mTextPosition.setText(PlayerUtils.formatPlayingTime(getCurrentPosition()));
-            mTextDuration.setText(PlayerUtils.formatPlayingTime(getDuration()));
-
-            mControlHandler.removeMessages(MSG_UPDATE_CURRENT_POSITION);
-            mControlHandler.sendEmptyMessage(MSG_UPDATE_CURRENT_POSITION);
-        }
-
-        @Override
-        public void onSeekComplete(OnePlayer player) {
-            LogUtils.i(TAG, "onSeekComplete: ");
-
-        }
-
-        @Override
-        public void onTimedText(OnePlayer player, ITimedText text) {
-            LogUtils.i(TAG, "onTimedText: %s", text);
-
-        }
-
-        @Override
-        public void onVideoSizeChanged(OnePlayer player, int width, int height) {
-            LogUtils.i(TAG, "onVideoSizeChanged: [%s,%s]", width, height);
-
+        public void onClick(View view) {
+            PlayerLogger.i(TAG, "onClick: %s", view.getId());
+            OnePlayer player = PlayerControlView.this.player;
+            if (player == null) {
+                return;
+            }
+            if (nextButton == view) {
+                next(player);
+            } else if (previousButton == view) {
+                previous(player);
+            } else if (fastForwardButton == view) {
+                fastForward(player);
+            } else if (rewindButton == view) {
+                rewind(player);
+            } else if (playPauseButton == view) {
+                if (player.getPlaybackState() == OnePlayer.STATE_IDLE) {
+                    if (playbackPreparer != null) {
+                        playbackPreparer.preparePlayback();
+                    }
+                } else if (player.getPlaybackState() == OnePlayer.STATE_ENDED) {
+                    controlDispatcher.dispatchSeekTo(player, Constants.TIME_UNSET);
+                }
+                if (player.isPlaying()) {
+                    controlDispatcher.dispatchSetPlayWhenReady(player, false);
+                } else {
+                    controlDispatcher.dispatchSetPlayWhenReady(player, true);
+                }
+            }
         }
     }
 }

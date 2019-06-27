@@ -16,6 +16,7 @@ package com.coopsrc.oneplayer.demo.tv;
 
 import android.net.Uri;
 import android.os.Bundle;
+
 import androidx.leanback.app.VideoSupportFragment;
 import androidx.leanback.app.VideoSupportFragmentGlueHost;
 import androidx.leanback.media.MediaPlayerAdapter;

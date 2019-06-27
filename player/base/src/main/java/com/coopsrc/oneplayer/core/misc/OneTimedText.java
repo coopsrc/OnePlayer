@@ -1,7 +1,6 @@
 package com.coopsrc.oneplayer.core.misc;
 
 import android.graphics.Rect;
-import android.media.TimedText;
 
 /**
  * @author tingkuo

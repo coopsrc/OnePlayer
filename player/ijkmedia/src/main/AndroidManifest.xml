@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.coopsrc.oneplayer.kernel.ijkmedia" />
+<manifest package="com.coopsrc.oneplayer.kernel.ijkmedia" />

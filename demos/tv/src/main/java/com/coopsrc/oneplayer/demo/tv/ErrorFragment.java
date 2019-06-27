@@ -14,9 +14,10 @@
 package com.coopsrc.oneplayer.demo.tv;
 
 import android.os.Bundle;
-import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+
+import androidx.core.content.ContextCompat;
 
 /*
  * This class demonstrates how to extend ErrorFragment

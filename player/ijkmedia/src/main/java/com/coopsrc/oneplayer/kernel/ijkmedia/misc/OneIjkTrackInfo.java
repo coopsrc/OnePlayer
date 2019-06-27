@@ -58,7 +58,7 @@ public class OneIjkTrackInfo implements ITrackInfo {
 
     @Override
     public IMediaFormat getFormat() {
-        if (mIjkTrackInfo != null && mIjkTrackInfo.getFormat() !=null) {
+        if (mIjkTrackInfo != null && mIjkTrackInfo.getFormat() != null) {
             return new OneIjkMediaFormat(mIjkTrackInfo.getFormat());
         }
         return null;

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <item name="player_content_frame" type="id"/>
+  <item name="player_shutter" type="id"/>
+  <item name="playback_controller_placeholder" type="id"/>
+  <item name="playback_controller" type="id"/>
+  <item name="player_overlay" type="id"/>
+  <item name="button_play_pause" type="id"/>
+  <item name="button_fast_rewind" type="id"/>
+  <item name="button_fast_forward" type="id"/>
+  <item name="button_skip_previous" type="id"/>
+  <item name="button_skip_next" type="id"/>
+  <item name="text_duration" type="id"/>
+  <item name="text_position" type="id"/>
+  <item name="progress_bar_placeholder" type="id"/>
+  <item name="progress_bar" type="id"/>
+  <item name="player_buffering" type="id"/>
+  <item name="player_error_message" type="id"/>
+
+</resources>

@@ -3,7 +3,6 @@ package com.coopsrc.oneplayer.core.utils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
 import java.util.HashMap;
 import java.util.Locale;
 
