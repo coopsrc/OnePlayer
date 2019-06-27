@@ -20,7 +20,7 @@ import java.util.Map;
  * <p>
  * Date: 2019-05-09 15:18
  */
-public interface IOnePlayer extends IPlayerInfo {
+public interface OnePlayer extends IPlayerInfo {
 
     void addListener(EventListener listener);
 
@@ -106,35 +106,35 @@ public interface IOnePlayer extends IPlayerInfo {
     void setOnVideoSizeChangedListener(OnVideoSizeChangedListener onVideoSizeChangedListener);
 
     interface OnBufferingUpdateListener {
-        void onBufferingUpdate(IOnePlayer player, int percent);
+        void onBufferingUpdate(OnePlayer player, int percent);
     }
 
     interface OnCompletionListener {
-        void onCompletion(IOnePlayer player);
+        void onCompletion(OnePlayer player);
     }
 
     interface OnErrorListener {
-        boolean onError(IOnePlayer player, int what, int extra);
+        boolean onError(OnePlayer player, int what, int extra);
     }
 
     interface OnInfoListener {
-        boolean onInfo(IOnePlayer player, int what, int extra);
+        boolean onInfo(OnePlayer player, int what, int extra);
     }
 
     interface OnPreparedListener {
-        void onPrepared(IOnePlayer player);
+        void onPrepared(OnePlayer player);
     }
 
     interface OnSeekCompleteListener {
-        void onSeekComplete(IOnePlayer player);
+        void onSeekComplete(OnePlayer player);
     }
 
     interface OnTimedTextListener {
-        void onTimedText(IOnePlayer player, ITimedText text);
+        void onTimedText(OnePlayer player, ITimedText text);
     }
 
     interface OnVideoSizeChangedListener {
-        void onVideoSizeChanged(IOnePlayer player, int width, int height);
+        void onVideoSizeChanged(OnePlayer player, int width, int height);
     }
 
     interface EventListener extends

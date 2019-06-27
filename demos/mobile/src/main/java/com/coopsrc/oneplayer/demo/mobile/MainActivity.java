@@ -1,6 +1,5 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -8,8 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 
 import com.coopsrc.oneplayer.PlayerFactory;
-import com.coopsrc.oneplayer.core.AbsOnePlayer;
-import com.coopsrc.oneplayer.core.IOnePlayer;
+import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
 import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.PlayerView;
@@ -49,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PlayerView mPlayerView;
 
-    private AbsOnePlayer mPlayer;
+    private OnePlayer mPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,30 +62,30 @@ public class MainActivity extends AppCompatActivity {
         mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
 
         mPlayer.setScreenOnWhilePlaying(true);
-        mPlayer.setOnPreparedListener(new IOnePlayer.OnPreparedListener() {
+        mPlayer.setOnPreparedListener(new OnePlayer.OnPreparedListener() {
             @Override
-            public void onPrepared(IOnePlayer player) {
+            public void onPrepared(OnePlayer player) {
                 Log.i(TAG, "onPrepared: ");
                 mPlayer.start();
                 mPlayer.setLooping(true);
             }
         });
-        mPlayer.setOnInfoListener(new IOnePlayer.OnInfoListener() {
+        mPlayer.setOnInfoListener(new OnePlayer.OnInfoListener() {
             @Override
-            public boolean onInfo(IOnePlayer player, int what, int extra) {
+            public boolean onInfo(OnePlayer player, int what, int extra) {
                 LogUtils.i(TAG, "onInfo: what=%s, extra=%s", what, extra);
                 return false;
             }
         });
-        mPlayer.setOnBufferingUpdateListener(new IOnePlayer.OnBufferingUpdateListener() {
+        mPlayer.setOnBufferingUpdateListener(new OnePlayer.OnBufferingUpdateListener() {
             @Override
-            public void onBufferingUpdate(IOnePlayer player, int percent) {
+            public void onBufferingUpdate(OnePlayer player, int percent) {
                 LogUtils.i(TAG, "onBufferingUpdate: percent=%s", percent);
             }
         });
-        mPlayer.setOnErrorListener(new IOnePlayer.OnErrorListener() {
+        mPlayer.setOnErrorListener(new OnePlayer.OnErrorListener() {
             @Override
-            public boolean onError(IOnePlayer player, int what, int extra) {
+            public boolean onError(OnePlayer player, int what, int extra) {
                 LogUtils.i(TAG, "onError: what=%s, extra=%s", what, extra);
                 return false;
             }

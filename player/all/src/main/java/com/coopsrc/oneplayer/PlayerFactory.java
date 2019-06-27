@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.StringDef;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
+import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.kernel.exo.OneExoPlayer;
 import com.coopsrc.oneplayer.kernel.ijkmedia.OneIjkPlayer;
 import com.coopsrc.oneplayer.kernel.media.OneMediaPlayer;
@@ -38,31 +39,31 @@ public final class PlayerFactory {
     public @interface PlayerType {
     }
 
-    public static AbsOnePlayer createMediaPlayer(Context context) {
+    public static OnePlayer createMediaPlayer(Context context) {
         return createPlayer(context, TypeMedia);
     }
 
-    public static AbsOnePlayer createMediaPlayer2(Context context) {
+    public static OnePlayer createMediaPlayer2(Context context) {
         return createPlayer(context, TypeMedia2);
     }
 
-    public static AbsOnePlayer createExoPlayer(Context context) {
+    public static OnePlayer createExoPlayer(Context context) {
         return createPlayer(context, TypeExo);
     }
 
-    public static AbsOnePlayer createExoPlayer2(Context context) {
+    public static OnePlayer createExoPlayer2(Context context) {
         return createPlayer(context, TypeExo2);
     }
 
-    public static AbsOnePlayer createMercuryPlayer(Context context) {
+    public static OnePlayer createMercuryPlayer(Context context) {
         return createPlayer(context, TypeMercury);
     }
 
-    public static AbsOnePlayer createIjkPlayer(Context context) {
+    public static OnePlayer createIjkPlayer(Context context) {
         return createPlayer(context, TypeIjk);
     }
 
-    public static AbsOnePlayer createPlayer(Context context, @PlayerType String type) {
+    public static OnePlayer createPlayer(Context context, @PlayerType String type) {
         switch (type) {
             case TypeMedia:
                 return new OneMediaPlayer(context);

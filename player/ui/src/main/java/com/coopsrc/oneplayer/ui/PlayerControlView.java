@@ -16,7 +16,7 @@ import android.widget.MediaController;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.coopsrc.oneplayer.core.IOnePlayer;
+import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.LogUtils;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
@@ -48,7 +48,7 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
 
     private boolean mIsFullscreen = false;
 
-    private IOnePlayer mPlayer;
+    private OnePlayer mPlayer;
     private PlayerControlListener mControlListener;
     private PlayerEventListener mPlayerEventListener;
 
@@ -126,11 +126,11 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
         return super.onTouchEvent(event);
     }
 
-    public IOnePlayer getPlayer() {
+    public OnePlayer getPlayer() {
         return mPlayer;
     }
 
-    public void setPlayer(IOnePlayer player) {
+    public void setPlayer(OnePlayer player) {
 
         if (mPlayer == player) {
             return;
@@ -336,33 +336,33 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
         }
     }
 
-    private final class PlayerEventListener implements IOnePlayer.EventListener {
+    private final class PlayerEventListener implements OnePlayer.EventListener {
 
         @Override
-        public void onBufferingUpdate(IOnePlayer player, int percent) {
+        public void onBufferingUpdate(OnePlayer player, int percent) {
             LogUtils.i(TAG, "onBufferingUpdate: %s", percent);
             mControlHandler.sendEmptyMessage(MSG_UPDATE_BUFFERING_POSITION);
         }
 
         @Override
-        public void onCompletion(IOnePlayer player) {
+        public void onCompletion(OnePlayer player) {
             LogUtils.i(TAG, "onCompletion: ");
         }
 
         @Override
-        public boolean onError(IOnePlayer player, int what, int extra) {
+        public boolean onError(OnePlayer player, int what, int extra) {
             LogUtils.i(TAG, "onError: [%s,%s]", what, extra);
             return false;
         }
 
         @Override
-        public boolean onInfo(IOnePlayer player, int what, int extra) {
+        public boolean onInfo(OnePlayer player, int what, int extra) {
             LogUtils.i(TAG, "onInfo: [%s,%s]", what, extra);
             return false;
         }
 
         @Override
-        public void onPrepared(IOnePlayer player) {
+        public void onPrepared(OnePlayer player) {
             LogUtils.i(TAG, "onPrepared: ");
             mProgressBar.setMax(getDuration());
             mProgressBar.setProgress(getCurrentPosition());
@@ -375,19 +375,19 @@ public class PlayerControlView extends ConstraintLayout implements MediaControll
         }
 
         @Override
-        public void onSeekComplete(IOnePlayer player) {
+        public void onSeekComplete(OnePlayer player) {
             LogUtils.i(TAG, "onSeekComplete: ");
 
         }
 
         @Override
-        public void onTimedText(IOnePlayer player, ITimedText text) {
+        public void onTimedText(OnePlayer player, ITimedText text) {
             LogUtils.i(TAG, "onTimedText: %s", text);
 
         }
 
         @Override
-        public void onVideoSizeChanged(IOnePlayer player, int width, int height) {
+        public void onVideoSizeChanged(OnePlayer player, int width, int height) {
             LogUtils.i(TAG, "onVideoSizeChanged: [%s,%s]", width, height);
 
         }

@@ -6,7 +6,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
-import com.coopsrc.oneplayer.core.IOnePlayer;
+import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.kernel.exo.drm.SmoothStreamingTestMediaDrmCallback;
@@ -346,7 +346,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
                 switch (playbackState) {
                     case ExoPlayer.STATE_ENDED:
                     case ExoPlayer.STATE_READY:
-                        notifyOnInfo(IOnePlayer.MEDIA_INFO_BUFFERING_END, mInternalPlayer.getBufferedPercentage());
+                        notifyOnInfo(OnePlayer.MEDIA_INFO_BUFFERING_END, mInternalPlayer.getBufferedPercentage());
                         notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
                         mIsBuffering = false;
                         break;
@@ -371,7 +371,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
                     mIsPreparing = true;
                     break;
                 case ExoPlayer.STATE_BUFFERING:
-                    notifyOnInfo(IOnePlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
+                    notifyOnInfo(OnePlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
                     notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
                     mIsBuffering = true;
                     break;
@@ -387,7 +387,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
 
         @Override
         public void onError(Exception e) {
-            notifyOnError(IOnePlayer.MEDIA_ERROR_UNKNOWN, IOnePlayer.MEDIA_ERROR_UNKNOWN);
+            notifyOnError(OnePlayer.MEDIA_ERROR_UNKNOWN, OnePlayer.MEDIA_ERROR_UNKNOWN);
         }
 
         @Override

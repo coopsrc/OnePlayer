@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>
  * Date: 2019-05-09 15:30
  */
-public abstract class AbsOnePlayer<P> implements IOnePlayer {
+public abstract class AbsOnePlayer<P> implements OnePlayer {
     private OnBufferingUpdateListener mOnBufferingUpdateListener;
     private OnCompletionListener mOnCompletionListener;
     private OnErrorListener mOnErrorListener;

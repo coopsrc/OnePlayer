@@ -20,14 +20,14 @@ import java.util.Map;
  * <p>
  * Date: 2019-05-10 12:07
  */
-public class MediaPlayerProxy implements IOnePlayer {
-    private final IOnePlayer mBackendPlayer;
+public class MediaPlayerProxy implements OnePlayer {
+    private final OnePlayer mBackendPlayer;
 
-    public MediaPlayerProxy(IOnePlayer backendPlayer) {
+    public MediaPlayerProxy(OnePlayer backendPlayer) {
         mBackendPlayer = backendPlayer;
     }
 
-    public IOnePlayer getBackendPlayer() {
+    public OnePlayer getBackendPlayer() {
         return mBackendPlayer;
     }
 
@@ -203,7 +203,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnBufferingUpdateListener listener = onBufferingUpdateListener;
             mBackendPlayer.setOnBufferingUpdateListener(new OnBufferingUpdateListener() {
                 @Override
-                public void onBufferingUpdate(IOnePlayer player, int percent) {
+                public void onBufferingUpdate(OnePlayer player, int percent) {
                     listener.onBufferingUpdate(MediaPlayerProxy.this, percent);
                 }
             });
@@ -218,7 +218,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnCompletionListener listener = onCompletionListener;
             mBackendPlayer.setOnCompletionListener(new OnCompletionListener() {
                 @Override
-                public void onCompletion(IOnePlayer player) {
+                public void onCompletion(OnePlayer player) {
                     listener.onCompletion(MediaPlayerProxy.this);
                 }
             });
@@ -233,7 +233,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnErrorListener listener = onErrorListener;
             mBackendPlayer.setOnErrorListener(new OnErrorListener() {
                 @Override
-                public boolean onError(IOnePlayer player, int what, int extra) {
+                public boolean onError(OnePlayer player, int what, int extra) {
                     return listener.onError(MediaPlayerProxy.this, what, extra);
                 }
             });
@@ -248,7 +248,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnInfoListener listener = onInfoListener;
             mBackendPlayer.setOnInfoListener(new OnInfoListener() {
                 @Override
-                public boolean onInfo(IOnePlayer player, int what, int extra) {
+                public boolean onInfo(OnePlayer player, int what, int extra) {
                     return listener.onInfo(MediaPlayerProxy.this, what, extra);
                 }
             });
@@ -263,7 +263,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnPreparedListener listener = onPreparedListener;
             mBackendPlayer.setOnPreparedListener(new OnPreparedListener() {
                 @Override
-                public void onPrepared(IOnePlayer player) {
+                public void onPrepared(OnePlayer player) {
                     listener.onPrepared(MediaPlayerProxy.this);
                 }
             });
@@ -278,7 +278,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnSeekCompleteListener listener = onSeekCompleteListener;
             mBackendPlayer.setOnSeekCompleteListener(new OnSeekCompleteListener() {
                 @Override
-                public void onSeekComplete(IOnePlayer player) {
+                public void onSeekComplete(OnePlayer player) {
                     listener.onSeekComplete(MediaPlayerProxy.this);
                 }
             });
@@ -293,7 +293,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnTimedTextListener listener = onTimedTextListener;
             mBackendPlayer.setOnTimedTextListener(new OnTimedTextListener() {
                 @Override
-                public void onTimedText(IOnePlayer player, ITimedText text) {
+                public void onTimedText(OnePlayer player, ITimedText text) {
                     listener.onTimedText(MediaPlayerProxy.this, text);
                 }
             });
@@ -308,7 +308,7 @@ public class MediaPlayerProxy implements IOnePlayer {
             final OnVideoSizeChangedListener listener = onVideoSizeChangedListener;
             mBackendPlayer.setOnVideoSizeChangedListener(new OnVideoSizeChangedListener() {
                 @Override
-                public void onVideoSizeChanged(IOnePlayer player, int width, int height) {
+                public void onVideoSizeChanged(OnePlayer player, int width, int height) {
                     listener.onVideoSizeChanged(MediaPlayerProxy.this, width, height);
                 }
             });

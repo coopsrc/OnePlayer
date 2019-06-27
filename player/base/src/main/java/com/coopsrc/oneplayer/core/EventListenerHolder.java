@@ -6,11 +6,11 @@ package com.coopsrc.oneplayer.core;
  * Date: 2019-05-10 18:04
  */
 public final class EventListenerHolder {
-    private final IOnePlayer.EventListener mListener;
+    private final OnePlayer.EventListener mListener;
 
     private boolean released;
 
-    public EventListenerHolder(IOnePlayer.EventListener listener) {
+    public EventListenerHolder(OnePlayer.EventListener listener) {
         mListener = listener;
     }
 
@@ -18,7 +18,7 @@ public final class EventListenerHolder {
         released = true;
     }
 
-    public IOnePlayer.EventListener getListener() {
+    public OnePlayer.EventListener getListener() {
         return mListener;
     }
 
@@ -29,6 +29,6 @@ public final class EventListenerHolder {
     }
 
     public interface ListenerInvocation {
-        void invokeListener(IOnePlayer.EventListener listener);
+        void invokeListener(OnePlayer.EventListener listener);
     }
 }
