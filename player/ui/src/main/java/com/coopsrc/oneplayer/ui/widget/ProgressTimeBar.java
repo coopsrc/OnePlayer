@@ -5,6 +5,7 @@ import android.util.AttributeSet;
 
 import androidx.appcompat.widget.AppCompatSeekBar;
 
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.ui.TimeBar;
 
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -15,6 +16,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Date: 2019-06-28 11:44
  */
 public class ProgressTimeBar extends AppCompatSeekBar implements TimeBar {
+    private static final String TAG = "ProgressTimeBar";
 
     private final CopyOnWriteArraySet<TimeBar.OnScrubListener> listeners;
 
@@ -54,16 +56,19 @@ public class ProgressTimeBar extends AppCompatSeekBar implements TimeBar {
 
     @Override
     public void setPosition(long position) {
+        PlayerLogger.i(TAG, "setPosition: %s", position);
         setProgress((int) position);
     }
 
     @Override
     public void setBufferedPosition(long bufferedPosition) {
+        PlayerLogger.i(TAG, "setBufferedPosition: %s", bufferedPosition);
         setSecondaryProgress((int) bufferedPosition);
     }
 
     @Override
     public void setDuration(long duration) {
+        PlayerLogger.i(TAG, "setDuration: %s", duration);
         setMax((int) duration);
     }
 

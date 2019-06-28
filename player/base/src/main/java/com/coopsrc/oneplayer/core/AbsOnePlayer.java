@@ -68,6 +68,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     protected abstract PlayerListenerHolder getInternalListener();
 
+    protected abstract void initializePlayer();
+
     protected abstract void attachInternalListeners();
 
     protected void resetInternalListeners() {

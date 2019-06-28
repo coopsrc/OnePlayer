@@ -6,6 +6,7 @@ import androidx.annotation.StringDef;
 
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.kernel.exo.OneExoPlayer;
+import com.coopsrc.oneplayer.kernel.exo2.OneExoPlayer2;
 import com.coopsrc.oneplayer.kernel.ijkmedia.OneIjkPlayer;
 import com.coopsrc.oneplayer.kernel.media.OneMediaPlayer;
 
@@ -71,7 +72,7 @@ public final class PlayerFactory {
             case TypeExo:
                 return new OneExoPlayer(context);
             case TypeExo2:
-                return new OneMediaPlayer(context);
+                return new OneExoPlayer2(context);
             case TypeMercury:
                 return new OneMediaPlayer(context);
             case TypeIjk:

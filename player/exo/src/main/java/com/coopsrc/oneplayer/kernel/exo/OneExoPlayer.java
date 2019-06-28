@@ -74,6 +74,15 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
+    protected void initializePlayer() {
+        mInternalPlayer = new DemoPlayer(mRendererBuilder);
+        mInternalPlayer.addListener(mInternalAdapterListener);
+        mInternalPlayer.addListener(mEventLogger);
+        mInternalPlayer.setInfoListener(mEventLogger);
+        mInternalPlayer.setInternalErrorListener(mEventLogger);
+    }
+
+    @Override
     protected void attachInternalListeners() {
 
     }
@@ -132,11 +141,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
 
     @Override
     public void prepareAsync() throws IllegalStateException {
-        mInternalPlayer = new DemoPlayer(mRendererBuilder);
-        mInternalPlayer.addListener(mInternalAdapterListener);
-        mInternalPlayer.addListener(mEventLogger);
-        mInternalPlayer.setInfoListener(mEventLogger);
-        mInternalPlayer.setInternalErrorListener(mEventLogger);
+        initializePlayer();
 
         if (mSurface != null) {
             mInternalPlayer.setSurface(mSurface);
@@ -212,7 +217,6 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
 
     @Override
     public void setVolume(float volume) {
-
     }
 
     @Override

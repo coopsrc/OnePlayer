@@ -142,7 +142,7 @@
         tools:text="01:52:59" />
 
     <ImageButton
-        android:id="@+id/button_fullscreen"
+        android:id="@id/button_fullscreen"
         style="@style/MediaButton.FullScreen"
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/text_duration"

@@ -321,6 +321,11 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
+    protected void initializePlayer() {
+
+    }
+
+    @Override
     protected void attachInternalListeners() {
         mInternalPlayer.setOnBufferingUpdateListener(mInternalAdapterListener);
         mInternalPlayer.setOnCompletionListener(mInternalAdapterListener);

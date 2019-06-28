@@ -11,6 +11,7 @@
   <item name="button_fast_forward" type="id"/>
   <item name="button_skip_previous" type="id"/>
   <item name="button_skip_next" type="id"/>
+  <item name="button_fullscreen" type="id"/>
   <item name="text_duration" type="id"/>
   <item name="text_position" type="id"/>
   <item name="progress_bar_placeholder" type="id"/>

@@ -35,8 +35,8 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         PlayerLibraryInfo.registerModule("one.player.ijk");
     }
 
-    private final IjkMediaPlayer mInternalPlayer;
-    private final IjkMediaPlayerListenerHolder mInternalAdapterListener;
+    private IjkMediaPlayer mInternalPlayer;
+    private IjkMediaPlayerListenerHolder mInternalAdapterListener;
 
     private final Object mLock = new Object();
 
@@ -44,9 +44,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         super(context);
 
         synchronized (mLock) {
-            mInternalPlayer = new IjkMediaPlayer();
-            mInternalPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mInternalPlayer.setScreenOnWhilePlaying(true);
+            initializePlayer();
         }
         mInternalAdapterListener = new IjkMediaPlayerListenerHolder(this);
         attachInternalListeners();
@@ -60,6 +58,14 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     @Override
     protected PlayerListenerHolder getInternalListener() {
         return mInternalAdapterListener;
+    }
+
+    @Override
+    protected void initializePlayer() {
+
+        mInternalPlayer = new IjkMediaPlayer();
+        mInternalPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mInternalPlayer.setScreenOnWhilePlaying(true);
     }
 
     @Override

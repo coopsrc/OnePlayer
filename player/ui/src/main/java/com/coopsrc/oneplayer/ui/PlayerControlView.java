@@ -1,6 +1,9 @@
 package com.coopsrc.oneplayer.ui;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -83,12 +86,6 @@ public class PlayerControlView extends ConstraintLayout {
      */
     public static final int DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS = 200;
     /**
-     * The maximum number of windows that can be shown in a multi-window time bar.
-     */
-    public static final int MAX_WINDOWS_FOR_MULTI_WINDOW_TIME_BAR = 100;
-
-    private static final long MAX_POSITION_FOR_SEEK_TO_PREVIOUS = 3000;
-    /**
      * The maximum interval between time bar position updates.
      */
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
@@ -99,6 +96,7 @@ public class PlayerControlView extends ConstraintLayout {
     private final View playPauseButton;
     private final View fastForwardButton;
     private final View rewindButton;
+    private final View fullScreenButton;
     private final TextView durationView;
     private final TextView positionView;
     private final TimeBar timeBar;
@@ -211,6 +209,10 @@ public class PlayerControlView extends ConstraintLayout {
         fastForwardButton = findViewById(R.id.button_fast_forward);
         if (fastForwardButton != null) {
             fastForwardButton.setOnClickListener(componentListener);
+        }
+        fullScreenButton = findViewById(R.id.button_fullscreen);
+        if (fullScreenButton != null) {
+            fullScreenButton.setOnClickListener(componentListener);
         }
     }
 
@@ -440,14 +442,13 @@ public class PlayerControlView extends ConstraintLayout {
         if (player == null) {
             return;
         }
-        long durationUs = player.getDuration();
-
-        long durationMs = Constants.usToMs(durationUs);
+        long duration = player.getDuration();
+        PlayerLogger.i(TAG, "updateTimeline: [%s]", duration);
         if (durationView != null) {
-            durationView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, durationMs));
+            durationView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, duration));
         }
         if (timeBar != null) {
-            timeBar.setDuration(durationMs);
+            timeBar.setDuration(duration);
         }
         updateProgress();
     }
@@ -463,6 +464,7 @@ public class PlayerControlView extends ConstraintLayout {
             position = player.getCurrentPosition();
             bufferedPosition = player.getBufferedPosition();
         }
+        PlayerLogger.i(TAG, "updateProgress: [%s -- %s]", position, bufferedPosition);
         if (positionView != null && !scrubbing) {
             positionView.setText(PlayerUtils.formatPlayingTime(formatBuilder, formatter, position));
         }
@@ -712,6 +714,18 @@ public class PlayerControlView extends ConstraintLayout {
                 } else {
                     controlDispatcher.dispatchSetPlayWhenReady(player, true);
                 }
+            } else if (fullScreenButton == view) {
+                PlayerLogger.i(TAG, "onClick: " + getContext());
+                if (getContext() instanceof Activity) {
+                    int orientation = getContext().getResources().getConfiguration().orientation;
+
+                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+                    } else {
+                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                    }
+                }
+
             }
         }
     }

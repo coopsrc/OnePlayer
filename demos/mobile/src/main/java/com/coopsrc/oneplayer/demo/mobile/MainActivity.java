@@ -1,8 +1,12 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -10,6 +14,7 @@ import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
+import com.coopsrc.oneplayer.core.utils.PlayerUtils;
 import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.PlayerView;
 
@@ -19,7 +24,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
-    private static final String URL = "https://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
+    private static final String URL = "http://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
     private static final String videoLocal = Environment.getExternalStorageDirectory() + "/Movies/Peru.mp4";
 
     private static final String RTSP = "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4";
@@ -62,8 +67,9 @@ public class MainActivity extends AppCompatActivity {
         mPlayerView = findViewById(R.id.player_view);
 
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
-//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
 
         mPlayer.setScreenOnWhilePlaying(true);
         mPlayer.setOnPreparedListener(new OnePlayer.OnPreparedListener() {
@@ -113,17 +119,17 @@ public class MainActivity extends AppCompatActivity {
 //            mPlayer.setDataSource(this, Uri.parse(videoLocal));
 
             // rtsp
-//                mPlayerView.setVideoPath(RTSP);
+//                mPlayer.setDataSource(RTSP);
 
             // dash h264 mp4
 //            mPlayer.setDataSource(DASH_HD);
 
             // ss
-//                mPlayerView.setVideoPath(SS);
+//            mPlayer.setDataSource(SS);
 
             // hls
-//                mPlayerView.setVideoPath(HLS);
-//                mPlayerView.setVideoPath(HLS_PL_MP4);
+//                mPlayer.setDataSource(HLS);
+//                mPlayer.setDataSource(HLS_PL_MP4);
 
             // hls live
 //            mPlayer.setDataSource(HLS_LIVE);
@@ -135,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             // dash h264 mp4 drm
 //                dashHeaders.put("contentId", "");
 //                dashHeaders.put("provider", "widevine_test");
-//                mPlayerView.setVideoURI(Uri.parse(DASH_SECURE_SD), dashHeaders);
+//                mPlayer.setVideoURI(Uri.parse(DASH_SECURE_SD), dashHeaders);
 
 
         } catch (Exception e) {
@@ -154,4 +160,37 @@ public class MainActivity extends AppCompatActivity {
         mPlayer.release();
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.i(TAG, "onConfigurationChanged: " + newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//隐藏状态栏
+            PlayerUtils.hideActionBar(this);
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //显示状态栏
+            PlayerUtils.showActionBar(this);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            switchToPortrait();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void switchToLandscape() {
+        Log.i(TAG, "switchToLandscape: ");
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+    }
+
+    private void switchToPortrait() {
+        Log.i(TAG, "switchToPortrait: ");
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+    }
 }
