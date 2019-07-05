@@ -7,6 +7,7 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -214,6 +215,9 @@ public class PlayerControlView extends ConstraintLayout {
         if (fullScreenButton != null) {
             fullScreenButton.setOnClickListener(componentListener);
         }
+
+        setClipChildren(false);
+        setClipToPadding(false);
     }
 
 
@@ -422,7 +426,7 @@ public class PlayerControlView extends ConstraintLayout {
         if (!isVisible() || !isAttachedToWindow) {
             return;
         }
-        boolean enableSeeking = false;
+        boolean enableSeeking = true;
         boolean enablePrevious = false;
         boolean enableRewind = false;
         boolean enableFastForward = false;
@@ -454,6 +458,7 @@ public class PlayerControlView extends ConstraintLayout {
     }
 
     private void updateProgress() {
+        PlayerLogger.i(TAG, "updateProgress: ");
         if (!isVisible() || !isAttachedToWindow) {
             return;
         }
@@ -495,6 +500,7 @@ public class PlayerControlView extends ConstraintLayout {
         } else if (playbackState != OnePlayer.STATE_ENDED && playbackState != OnePlayer.STATE_IDLE) {
             postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
         }
+        postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
     }
 
     private void requestPlayPauseFocus() {
@@ -654,6 +660,21 @@ public class PlayerControlView extends ConstraintLayout {
     private final class ComponentListener implements OnePlayer.EventListener, TimeBar.OnScrubListener, OnClickListener {
 
         @Override
+        public boolean onInfo(OnePlayer player, int what, int extra) {
+            PlayerLogger.i(TAG, "onInfo: [%s, %s]", what, extra);
+
+            switch (what) {
+                case OnePlayer.MEDIA_INFO_BUFFERING_START:
+                    break;
+                case OnePlayer.MEDIA_INFO_BUFFERING_END:
+                    updateTimeline();
+                    break;
+            }
+
+            return false;
+        }
+
+        @Override
         public void onScrubStart(TimeBar timeBar, long position) {
             PlayerLogger.i(TAG, "onScrubStart: [%s: %s]", timeBar, position);
             scrubbing = true;
@@ -720,9 +741,9 @@ public class PlayerControlView extends ConstraintLayout {
                     int orientation = getContext().getResources().getConfiguration().orientation;
 
                     if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                     } else {
-                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                     }
                 }
 

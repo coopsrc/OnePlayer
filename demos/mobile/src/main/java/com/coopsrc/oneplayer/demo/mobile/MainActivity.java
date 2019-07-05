@@ -2,7 +2,6 @@ package com.coopsrc.oneplayer.demo.mobile;
 
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -47,6 +46,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String HLS_FAST_8 = "https://kakazy-yun.com/20170831/dY1xSKbG/index.m3u8";
 
     private static final String HLS_LIVE = "http://weblive.hebtv.com/live/hbgg_bq/index.m3u8";
+    private static final String HLS_LIVE_hbws_bq = "http://weblive.hebtv.com/live/hbws_bq/index.m3u8";
+    private static final String HLS_LIVE_hbjj_bq = "http://weblive.hebtv.com/live/hbjj_bq/index.m3u8";
+    private static final String HLS_LIVE_hbds_bq = "http://weblive.hebtv.com/live/hbds_bq/index.m3u8";
+    private static final String HLS_LIVE_hbys_bq = "http://weblive.hebtv.com/live/hbys_bq/index.m3u8";
+    private static final String HLS_LIVE_hbse_bq = "http://weblive.hebtv.com/live/hbse_bq/index.m3u8";
+    private static final String HLS_LIVE_hbgg_bq = "http://weblive.hebtv.com/live/hbgg_bq/index.m3u8";
+    private static final String HLS_LIVE_nmpd_bq = "http://weblive.hebtv.com/live/nmpd_bq/index.m3u8";
     private static final String testURl2 = "https://video-dev.github.io/streams/x36xhzz/x36xhzz.m3u8";
 
     private static final String FLV = "https://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0";
@@ -67,8 +73,9 @@ public class MainActivity extends AppCompatActivity {
         mPlayerView = findViewById(R.id.player_view);
 
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
-//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia2);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
 
         mPlayer.setScreenOnWhilePlaying(true);
@@ -133,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
 
             // hls live
 //            mPlayer.setDataSource(HLS_LIVE);
-            mPlayer.setDataSource(HLS_FAST_8);
+            mPlayer.setDataSource(HLS_LIVE_hbws_bq);
+//            mPlayer.setDataSource(HLS_FAST_8);
 
             // 360
 //            mPlayer.setDataSource(_360_congo);
@@ -151,6 +159,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mPlayer != null) {
+            mPlayer.pause();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mPlayer.isPlaying()) {
+            mPlayer.stop();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
 
@@ -163,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        Log.i(TAG, "onConfigurationChanged: " + newConfig);
+        Log.i(TAG, "onConfigurationChanged: " + newConfig.orientation);
 
         // Checks the orientation of the screen
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -177,7 +203,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        int orientation = getResources().getConfiguration().orientation;
+
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             switchToPortrait();
         } else {
             super.onBackPressed();

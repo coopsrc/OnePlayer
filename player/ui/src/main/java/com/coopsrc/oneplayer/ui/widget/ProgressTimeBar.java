@@ -55,6 +55,11 @@ public class ProgressTimeBar extends AppCompatSeekBar implements TimeBar {
     }
 
     @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+    }
+
+    @Override
     public void setPosition(long position) {
         PlayerLogger.i(TAG, "setPosition: %s", position);
         setProgress((int) position);

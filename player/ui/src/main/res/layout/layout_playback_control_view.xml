@@ -121,6 +121,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:max="100"
         android:progressDrawable="@drawable/player_seekbar_progress_drawable"
         android:thumb="@drawable/player_seekbar_thumb"

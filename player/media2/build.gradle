@@ -31,9 +31,9 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'androidx.appcompat:appcompat:1.0.2'
-//    implementation "androidx.media2:media2-common:1.0.0-rc01"
-//    implementation "androidx.media2:media2-player:1.0.0-rc01"
-//    implementation "androidx.media2:media2-session:1.0.0-rc01"
+    implementation "androidx.media2:media2-common:1.0.0-rc01"
+    implementation "androidx.media2:media2-player:1.0.0-rc01"
+    implementation "androidx.media2:media2-session:1.0.0-rc01"
 
     api project(':player-base')
 }
