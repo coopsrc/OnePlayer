@@ -3,17 +3,16 @@ package com.coopsrc.oneplayer.core;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.coopsrc.oneplayer.core.audio.AudioComponent;
+import com.coopsrc.oneplayer.core.metadata.MetadataComponent;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
+import com.coopsrc.oneplayer.core.text.TextComponent;
+import com.coopsrc.oneplayer.core.video.VideoComponent;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -24,11 +23,12 @@ import java.util.Map;
  * <p>
  * Date: 2019-05-09 15:18
  */
-public interface OnePlayer extends IPlayerInfo, IPlayerSurface {
+public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, TextComponent, MetadataComponent {
+    String TAG = "OnePlayer";
 
-    void addListener(EventListener listener);
+    void addEventListener(EventListener listener);
 
-    void removeListener(EventListener listener);
+    void removeEventListener(EventListener listener);
 
     void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
@@ -59,10 +59,6 @@ public interface OnePlayer extends IPlayerInfo, IPlayerSurface {
 
     void seekTo(long msec) throws IllegalStateException;
 
-    void setVolume(float volume);
-
-    void setVolume(float leftVolume, float rightVolume);
-
     long getCurrentPosition();
 
     int getCurrentPercentage();
@@ -89,31 +85,11 @@ public interface OnePlayer extends IPlayerInfo, IPlayerSurface {
 
     ITrackInfo[] getTrackInfo();
 
-    int getAudioSessionId();
-
     int getPlaybackState();
 
     void setPlayWhenReady(boolean playWhenReady);
 
     boolean getPlayWhenReady();
-
-    void setOnBufferingUpdateListener(OnBufferingUpdateListener onBufferingUpdateListener);
-
-    void setOnCompletionListener(OnCompletionListener onCompletionListener);
-
-    void setOnErrorListener(OnErrorListener onErrorListener);
-
-    void setOnInfoListener(OnInfoListener onInfoListener);
-
-    void setOnPreparedListener(OnPreparedListener onPreparedListener);
-
-    void setOnSeekCompleteListener(OnSeekCompleteListener onSeekCompleteListener);
-
-    void setOnTimedTextListener(OnTimedTextListener onTimedTextListener);
-
-    void setOnVideoSizeChangedListener(OnVideoSizeChangedListener onVideoSizeChangedListener);
-
-    void setOnPlayerStateChangedListener(OnPlaybackStateChangedListener onPlaybackStateChangedListener);
 
     interface OnBufferingUpdateListener {
         default void onBufferingUpdate(OnePlayer player, int percent) {
@@ -171,8 +147,7 @@ public interface OnePlayer extends IPlayerInfo, IPlayerSurface {
             OnSeekCompleteListener,
             OnTimedTextListener,
             OnVideoSizeChangedListener,
-            OnPlaybackStateChangedListener,
-            VideoSurfaceListener {
+            OnPlaybackStateChangedListener {
 
     }
 }

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
+import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
 import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
@@ -45,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String HLS_FAST_8 = "https://kakazy-yun.com/20170831/dY1xSKbG/index.m3u8";
 
-    private static final String HLS_LIVE = "http://weblive.hebtv.com/live/hbgg_bq/index.m3u8";
     private static final String HLS_LIVE_hbws_bq = "http://weblive.hebtv.com/live/hbws_bq/index.m3u8";
     private static final String HLS_LIVE_hbjj_bq = "http://weblive.hebtv.com/live/hbjj_bq/index.m3u8";
     private static final String HLS_LIVE_hbds_bq = "http://weblive.hebtv.com/live/hbds_bq/index.m3u8";
@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String _360_congo = "https://storage.googleapis.com/exoplayer-test-media-1/360/congo.mp4";
     private static final String _360_sphericalv2 = "https://storage.googleapis.com/exoplayer-test-media-1/360/sphericalv2.mp4";
     private static final String _360_iceland0 = "https://storage.googleapis.com/exoplayer-test-media-1/360/iceland0.ts";
+
+    private static final String MPD = "https://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtube?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAECCCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0";
 
     private PlayerView mPlayerView;
 
@@ -75,36 +77,58 @@ public class MainActivity extends AppCompatActivity {
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia2);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
-//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
 
         mPlayer.setScreenOnWhilePlaying(true);
-        mPlayer.setOnPreparedListener(new OnePlayer.OnPreparedListener() {
+        mPlayer.addEventListener(new OnePlayer.EventListener() {
+            @Override
+            public void onBufferingUpdate(OnePlayer player, int percent) {
+                PlayerLogger.i(TAG, "onBufferingUpdate: percent=%s", percent);
+            }
+
+            @Override
+            public void onCompletion(OnePlayer player) {
+
+            }
+
+            @Override
+            public boolean onError(OnePlayer player, int what, int extra) {
+                PlayerLogger.i(TAG, "onError: what=%s, extra=%s", what, extra);
+                return false;
+            }
+
+            @Override
+            public boolean onInfo(OnePlayer player, int what, int extra) {
+                PlayerLogger.i(TAG, "onInfo: what=%s, extra=%s", what, extra);
+                return false;
+            }
+
             @Override
             public void onPrepared(OnePlayer player) {
                 Log.i(TAG, "onPrepared: ");
                 mPlayer.start();
                 mPlayer.setLooping(true);
             }
-        });
-        mPlayer.setOnInfoListener(new OnePlayer.OnInfoListener() {
+
             @Override
-            public boolean onInfo(OnePlayer player, int what, int extra) {
-                PlayerLogger.i(TAG, "onInfo: what=%s, extra=%s", what, extra);
-                return false;
+            public void onSeekComplete(OnePlayer player) {
+
             }
-        });
-        mPlayer.setOnBufferingUpdateListener(new OnePlayer.OnBufferingUpdateListener() {
+
             @Override
-            public void onBufferingUpdate(OnePlayer player, int percent) {
-                PlayerLogger.i(TAG, "onBufferingUpdate: percent=%s", percent);
+            public void onTimedText(OnePlayer player, ITimedText text) {
+
             }
-        });
-        mPlayer.setOnErrorListener(new OnePlayer.OnErrorListener() {
+
             @Override
-            public boolean onError(OnePlayer player, int what, int extra) {
-                PlayerLogger.i(TAG, "onError: what=%s, extra=%s", what, extra);
-                return false;
+            public void onVideoSizeChanged(OnePlayer player, int width, int height) {
+
+            }
+
+            @Override
+            public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
+
             }
         });
 
@@ -121,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         try {
-//            mPlayer.setDataSource(URL);
+            mPlayer.setDataSource(URL);
 
 //            mPlayer.setDataSource(this, Uri.parse(videoLocal));
 
@@ -139,8 +163,7 @@ public class MainActivity extends AppCompatActivity {
 //                mPlayer.setDataSource(HLS_PL_MP4);
 
             // hls live
-//            mPlayer.setDataSource(HLS_LIVE);
-            mPlayer.setDataSource(HLS_LIVE_hbws_bq);
+//            mPlayer.setDataSource(HLS_LIVE_hbws_bq);
 //            mPlayer.setDataSource(HLS_FAST_8);
 
             // 360
@@ -151,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
 //                dashHeaders.put("provider", "widevine_test");
 //                mPlayer.setVideoURI(Uri.parse(DASH_SECURE_SD), dashHeaders);
 
+//            mPlayer.setDataSource(MPD);
 
         } catch (Exception e) {
             e.printStackTrace();

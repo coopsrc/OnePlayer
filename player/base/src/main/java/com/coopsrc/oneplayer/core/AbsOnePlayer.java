@@ -10,8 +10,16 @@ import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 
+import com.coopsrc.oneplayer.core.audio.AudioListener;
+import com.coopsrc.oneplayer.core.invoke.ListenerHolder;
+import com.coopsrc.oneplayer.core.invoke.ListenerInvocation;
+import com.coopsrc.oneplayer.core.metadata.MetadataOutput;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
+import com.coopsrc.oneplayer.core.text.TextOutput;
 import com.coopsrc.oneplayer.core.utils.Constants;
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
+import com.coopsrc.oneplayer.core.utils.PlayerUtils;
+import com.coopsrc.oneplayer.core.video.VideoListener;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -24,23 +32,20 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Date: 2019-05-09 15:30
  */
 public abstract class AbsOnePlayer<P> implements OnePlayer {
-    private OnBufferingUpdateListener mOnBufferingUpdateListener;
-    private OnCompletionListener mOnCompletionListener;
-    private OnErrorListener mOnErrorListener;
-    private OnInfoListener mOnInfoListener;
-    private OnPreparedListener mOnPreparedListener;
-    private OnSeekCompleteListener mOnSeekCompleteListener;
-    private OnTimedTextListener mOnTimedTextListener;
-    private OnVideoSizeChangedListener mOnVideoSizeChangedListener;
 
-    private final CopyOnWriteArrayList<EventListenerHolder> mListenerHolders;
     private final ArrayDeque<Runnable> mPendingListenerNotifications;
+    private final CopyOnWriteArrayList<ListenerHolder<EventListener>> mListenerHolders;
 
-    private final CopyOnWriteArraySet<VideoSurfaceListener> mVideoSurfaceListeners;
+    private final CopyOnWriteArraySet<AudioListener> mAudioListeners;
+    private final CopyOnWriteArraySet<VideoListener> mVideoListeners;
+    private final CopyOnWriteArraySet<TextOutput> mTextOutputs;
+    private final CopyOnWriteArraySet<MetadataOutput> mMetadataOutputs;
 
     private final Context mContext;
 
     private int mBufferedPercentage;
+
+    private float audioVolume;
 
     @Nullable
     private Surface surface;
@@ -57,7 +62,10 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         mListenerHolders = new CopyOnWriteArrayList<>();
         mPendingListenerNotifications = new ArrayDeque<>();
 
-        mVideoSurfaceListeners = new CopyOnWriteArraySet<>();
+        mAudioListeners = new CopyOnWriteArraySet<>();
+        mVideoListeners = new CopyOnWriteArraySet<>();
+        mTextOutputs = new CopyOnWriteArraySet<>();
+        mMetadataOutputs = new CopyOnWriteArraySet<>();
     }
 
     public Context getContext() {
@@ -72,25 +80,16 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     protected abstract void attachInternalListeners();
 
-    protected void resetInternalListeners() {
-        mOnBufferingUpdateListener = null;
-        mOnCompletionListener = null;
-        mOnErrorListener = null;
-        mOnInfoListener = null;
-        mOnPreparedListener = null;
-        mOnSeekCompleteListener = null;
-        mOnTimedTextListener = null;
-        mOnVideoSizeChangedListener = null;
+    protected abstract void resetInternalListeners();
+
+    @Override
+    public void addEventListener(EventListener listener) {
+        mListenerHolders.addIfAbsent(new ListenerHolder<>(listener));
     }
 
     @Override
-    public void addListener(EventListener listener) {
-        mListenerHolders.addIfAbsent(new EventListenerHolder(listener));
-    }
-
-    @Override
-    public void removeListener(EventListener listener) {
-        for (EventListenerHolder listenerHolder : mListenerHolders) {
+    public void removeEventListener(EventListener listener) {
+        for (ListenerHolder listenerHolder : mListenerHolders) {
             if (listenerHolder.getListener().equals(listener)) {
                 listenerHolder.release();
                 mListenerHolders.remove(listenerHolder);
@@ -100,16 +99,41 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     protected abstract void setSurface(@Nullable Surface surface);
 
-    protected abstract void setDisplay(SurfaceHolder holder);
-
     @Override
-    public void addVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener) {
-        mVideoSurfaceListeners.add(videoSurfaceListener);
+    public void setVolume(float audioVolume) {
+        audioVolume = PlayerUtils.constrainValue(audioVolume, 0, 1);
+        if (this.audioVolume == audioVolume) {
+            return;
+        }
+        this.audioVolume = audioVolume;
+        for (AudioListener audioListener : mAudioListeners) {
+            audioListener.onVolumeChanged(audioVolume);
+        }
     }
 
     @Override
-    public void removeVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener) {
-        mVideoSurfaceListeners.remove(videoSurfaceListener);
+    public float getVolume() {
+        return audioVolume;
+    }
+
+    @Override
+    public void addAudioListener(AudioListener audioListener) {
+        mAudioListeners.add(audioListener);
+    }
+
+    @Override
+    public void removeAudioListener(AudioListener audioListener) {
+        mAudioListeners.remove(audioListener);
+    }
+
+    @Override
+    public void addVideoListener(VideoListener videoListener) {
+        mVideoListeners.add(videoListener);
+    }
+
+    @Override
+    public void removeVideoListener(VideoListener videoListener) {
+        mVideoListeners.add(videoListener);
     }
 
     @Override
@@ -176,7 +200,25 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public void setVideoTextureView(TextureView textureView) {
-
+        removeSurfaceCallbacks();
+        this.textureView = textureView;
+        if (textureView == null) {
+            setVideoSurfaceInternal(null, true);
+            maybeNotifySurfaceSizeChanged(0, 0);
+        } else {
+            if (textureView.getSurfaceTextureListener() != null) {
+                PlayerLogger.w(TAG, "Replacing existing SurfaceTextureListener.");
+            }
+            textureView.setSurfaceTextureListener(getInternalListener());
+            SurfaceTexture surfaceTexture = textureView.isAvailable() ? textureView.getSurfaceTexture() : null;
+            if (surfaceTexture == null) {
+                setVideoSurfaceInternal(null, true);
+                maybeNotifySurfaceSizeChanged(0, 0);
+            } else {
+                setVideoSurfaceInternal(new Surface(surfaceTexture), true);
+                maybeNotifySurfaceSizeChanged(textureView.getWidth(), textureView.getHeight());
+            }
+        }
     }
 
     @Override
@@ -185,6 +227,26 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         if (textureView != null && textureView == this.textureView) {
             setVideoTextureView(null);
         }
+    }
+
+    @Override
+    public void addTextOutput(TextOutput textOutput) {
+        mTextOutputs.add(textOutput);
+    }
+
+    @Override
+    public void removeTextOutput(TextOutput textOutput) {
+        mTextOutputs.remove(textOutput);
+    }
+
+    @Override
+    public void addMetadataOutput(MetadataOutput metadataOutput) {
+        mMetadataOutputs.add(metadataOutput);
+    }
+
+    @Override
+    public void removeMetadataOutput(MetadataOutput metadataOutput) {
+        mMetadataOutputs.remove(metadataOutput);
     }
 
     @Override
@@ -222,58 +284,13 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         return OnePlayer.STATE_IDLE;
     }
 
-    @Override
-    public void setOnBufferingUpdateListener(OnBufferingUpdateListener onBufferingUpdateListener) {
-        mOnBufferingUpdateListener = onBufferingUpdateListener;
-    }
-
-    @Override
-    public void setOnCompletionListener(OnCompletionListener onCompletionListener) {
-        mOnCompletionListener = onCompletionListener;
-    }
-
-    @Override
-    public void setOnErrorListener(OnErrorListener onErrorListener) {
-        mOnErrorListener = onErrorListener;
-    }
-
-    @Override
-    public void setOnInfoListener(OnInfoListener onInfoListener) {
-        mOnInfoListener = onInfoListener;
-    }
-
-    @Override
-    public void setOnPreparedListener(OnPreparedListener onPreparedListener) {
-        mOnPreparedListener = onPreparedListener;
-    }
-
-    @Override
-    public void setOnSeekCompleteListener(OnSeekCompleteListener onSeekCompleteListener) {
-        mOnSeekCompleteListener = onSeekCompleteListener;
-    }
-
-    @Override
-    public void setOnTimedTextListener(OnTimedTextListener onTimedTextListener) {
-        mOnTimedTextListener = onTimedTextListener;
-    }
-
-    @Override
-    public void setOnVideoSizeChangedListener(OnVideoSizeChangedListener onVideoSizeChangedListener) {
-        mOnVideoSizeChangedListener = onVideoSizeChangedListener;
-    }
-
-    @Override
-    public void setOnPlayerStateChangedListener(OnPlaybackStateChangedListener onPlaybackStateChangedListener) {
-
-    }
-
+    /*
+     * notify EventListener
+     */
     protected final void notifyOnBufferingUpdate(final int percent) {
         mBufferedPercentage = percent;
-        if (mOnBufferingUpdateListener != null) {
-            mOnBufferingUpdateListener.onBufferingUpdate(this, percent);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onBufferingUpdate(AbsOnePlayer.this, percent);
@@ -282,11 +299,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final void notifyOnCompletion() {
-        if (mOnCompletionListener != null) {
-            mOnCompletionListener.onCompletion(this);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onCompletion(AbsOnePlayer.this);
@@ -295,11 +309,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final boolean notifyOnError(final int what, final int extra) {
-        if (mOnErrorListener != null) {
-            mOnErrorListener.onError(this, what, extra);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onError(AbsOnePlayer.this, what, extra);
@@ -310,11 +321,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final boolean notifyOnInfo(final int what, final int extra) {
-        if (mOnInfoListener != null) {
-            mOnInfoListener.onInfo(this, what, extra);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onInfo(AbsOnePlayer.this, what, extra);
@@ -325,11 +333,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final void notifyOnPrepared() {
-        if (mOnPreparedListener != null) {
-            mOnPreparedListener.onPrepared(this);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onPrepared(AbsOnePlayer.this);
@@ -338,11 +343,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final void notifyOnSeekComplete() {
-        if (mOnSeekCompleteListener != null) {
-            mOnSeekCompleteListener.onSeekComplete(this);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onSeekComplete(AbsOnePlayer.this);
@@ -351,11 +353,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final void notifyOnTimedText(final ITimedText text) {
-        if (mOnTimedTextListener != null) {
-            mOnTimedTextListener.onTimedText(this, text);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onTimedText(AbsOnePlayer.this, text);
@@ -364,11 +363,8 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected final void notifyOnVideoSizeChanged(final int width, final int height) {
-        if (mOnVideoSizeChangedListener != null) {
-            mOnVideoSizeChangedListener.onVideoSizeChanged(this, width, height);
-        }
 
-        notifyEventListeners(new EventListenerHolder.ListenerInvocation() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
                 listener.onVideoSizeChanged(AbsOnePlayer.this, width, height);
@@ -376,9 +372,41 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         });
     }
 
-    private void notifyEventListeners(final EventListenerHolder.ListenerInvocation listenerInvocation) {
-        final CopyOnWriteArrayList<EventListenerHolder> listenerSnapshot = new CopyOnWriteArrayList<>(mListenerHolders);
-        notifyEventListeners(new Runnable() {
+    private void notifyEventListeners(final ListenerInvocation<EventListener> listenerInvocation) {
+        notifyListeners(mListenerHolders, listenerInvocation);
+    }
+
+    /*
+     * notify AudioListener
+     */
+    // TODO: 19-8-8 notify AudioListener
+
+    /*
+     * notify VideoListener
+     */
+    private void maybeNotifySurfaceSizeChanged(int width, int height) {
+        if (width != surfaceWidth || height != surfaceHeight) {
+            surfaceWidth = width;
+            surfaceHeight = height;
+            for (VideoListener videoSurfaceListener : mVideoListeners) {
+                videoSurfaceListener.onSurfaceSizeChanged(width, height);
+            }
+        }
+    }
+
+    /*
+     * notify TextOutput
+     */
+    // TODO: 19-8-8 notify TextOutput
+
+    /*
+     * notify MetadataOutput
+     */
+    // TODO: 19-8-8 notify MetadataOutput
+
+    private <T> void notifyListeners(CopyOnWriteArrayList<ListenerHolder<T>> listenerHolders, final ListenerInvocation<T> listenerInvocation) {
+        final CopyOnWriteArrayList<ListenerHolder<T>> listenerSnapshot = new CopyOnWriteArrayList<>(listenerHolders);
+        notifyListeners(new Runnable() {
             @Override
             public void run() {
                 invokeAll(listenerSnapshot, listenerInvocation);
@@ -386,14 +414,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         });
     }
 
-    private static void invokeAll(CopyOnWriteArrayList<EventListenerHolder> listenerHolders,
-                                  EventListenerHolder.ListenerInvocation listenerInvocation) {
-        for (EventListenerHolder listenerHolder : listenerHolders) {
-            listenerHolder.invoke(listenerInvocation);
-        }
-    }
-
-    private void notifyEventListeners(Runnable listenerNotificationRunnable) {
+    private void notifyListeners(Runnable listenerNotificationRunnable) {
         boolean isRunningRecursiveListenerNotification = !mPendingListenerNotifications.isEmpty();
         mPendingListenerNotifications.addLast(listenerNotificationRunnable);
         if (isRunningRecursiveListenerNotification) {
@@ -407,13 +428,9 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     }
 
-    private void maybeNotifySurfaceSizeChanged(int width, int height) {
-        if (width != surfaceWidth || height != surfaceHeight) {
-            surfaceWidth = width;
-            surfaceHeight = height;
-            for (VideoSurfaceListener videoSurfaceListener : mVideoSurfaceListeners) {
-                videoSurfaceListener.onSurfaceSizeChanged(width, height);
-            }
+    private <T> void invokeAll(CopyOnWriteArrayList<ListenerHolder<T>> listenerHolders, ListenerInvocation<T> listenerInvocation) {
+        for (ListenerHolder<T> listenerHolder : listenerHolders) {
+            listenerHolder.invoke(listenerInvocation);
         }
     }
 
@@ -462,7 +479,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
             setVideoSurfaceInternal(null, true);
-            maybeNotifySurfaceSizeChanged(0,0);
+            maybeNotifySurfaceSizeChanged(0, 0);
             return true;
         }
 

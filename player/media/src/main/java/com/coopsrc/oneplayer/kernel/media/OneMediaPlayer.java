@@ -8,7 +8,6 @@ import android.media.TimedText;
 import android.net.Uri;
 import android.os.Build;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
@@ -101,15 +100,6 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
-    protected void setDisplay(SurfaceHolder holder) {
-        synchronized (mLock) {
-            if (mInternalPlayer != null) {
-                mInternalPlayer.setDisplay(holder);
-            }
-        }
-    }
-
-    @Override
     protected void setSurface(Surface surface) {
         synchronized (mLock) {
             if (mInternalPlayer != null) {
@@ -187,16 +177,15 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public void setVolume(float volume) {
+        super.setVolume(volume);
         if (mInternalPlayer != null) {
             mInternalPlayer.setVolume(volume, volume);
         }
     }
 
     @Override
-    public void setVolume(float leftVolume, float rightVolume) {
-        if (mInternalPlayer != null) {
-            mInternalPlayer.setVolume(leftVolume, rightVolume);
-        }
+    public float getVolume() {
+        return super.getVolume();
     }
 
     @Override
@@ -291,6 +280,13 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
+    public void setAudioSessionId(int sessionId) {
+        if (mInternalPlayer != null) {
+            mInternalPlayer.setAudioSessionId(sessionId);
+        }
+    }
+
+    @Override
     public int getAudioSessionId() {
         return mInternalPlayer.getAudioSessionId();
     }
@@ -335,6 +331,11 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         mInternalPlayer.setOnSeekCompleteListener(mInternalAdapterListener);
         mInternalPlayer.setOnTimedTextListener(mInternalAdapterListener);
         mInternalPlayer.setOnVideoSizeChangedListener(mInternalAdapterListener);
+    }
+
+    @Override
+    protected void resetInternalListeners() {
+
     }
 
     private class MediaPlayerListenerHolder extends PlayerListenerHolder<OneMediaPlayer> implements

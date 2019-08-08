@@ -1,4 +1,4 @@
-package com.coopsrc.oneplayer.core;
+package com.coopsrc.oneplayer.core.video;
 
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -10,12 +10,12 @@ import androidx.annotation.Nullable;
 /**
  * @author tingkuo
  * <p>
- * Date: 2019-06-28 15:52
+ * Date: 2019-08-08 15:07
  */
-public interface IPlayerSurface {
-    void addVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener);
+public interface VideoComponent {
+    void addVideoListener(VideoListener videoListener);
 
-    void removeVideoSurfaceListener(VideoSurfaceListener videoSurfaceListener);
+    void removeVideoListener(VideoListener videoListener);
 
     void clearVideoSurface();
 
@@ -34,17 +34,4 @@ public interface IPlayerSurface {
     void setVideoTextureView(TextureView textureView);
 
     void clearVideoTextureView(TextureView textureView);
-
-
-    interface VideoSurfaceListener {
-        default void onVideoSizeChanged(int width, int height, int rotationDegrees, float ratio) {
-        }
-
-
-        default void onSurfaceSizeChanged(int width, int height) {
-        }
-
-        default void onRenderedFirstFrame() {
-        }
-    }
 }

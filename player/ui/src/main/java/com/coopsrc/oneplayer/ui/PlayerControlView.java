@@ -7,7 +7,6 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -242,11 +241,11 @@ public class PlayerControlView extends ConstraintLayout {
             return;
         }
         if (this.player != null) {
-            this.player.removeListener(componentListener);
+            this.player.removeEventListener(componentListener);
         }
         this.player = player;
         if (player != null) {
-            player.addListener(componentListener);
+            player.addEventListener(componentListener);
         }
         updateAll();
     }

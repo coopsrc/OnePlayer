@@ -4,7 +4,6 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
@@ -81,6 +80,11 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     @Override
+    protected void resetInternalListeners() {
+
+    }
+
+    @Override
     public void setDataSource(Context context, Uri uri) {
         if (mInternalPlayer != null) {
             try {
@@ -129,15 +133,6 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(new IjkMediaDataSource(dataSource));
-        }
-    }
-
-    @Override
-    protected void setDisplay(SurfaceHolder holder) {
-        synchronized (mLock) {
-            if (mInternalPlayer != null) {
-                mInternalPlayer.setDisplay(holder);
-            }
         }
     }
 
@@ -212,16 +207,15 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
     @Override
     public void setVolume(float volume) {
+        super.setVolume(volume);
         if (mInternalPlayer != null) {
             mInternalPlayer.setVolume(volume, volume);
         }
     }
 
     @Override
-    public void setVolume(float leftVolume, float rightVolume) {
-        if (mInternalPlayer != null) {
-            mInternalPlayer.setVolume(leftVolume, rightVolume);
-        }
+    public float getVolume() {
+        return mInternalPlayer.getAudioSessionId();
     }
 
     @Override
@@ -312,6 +306,11 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     @Override
     public ITrackInfo[] getTrackInfo() {
         return OneIjkTrackInfo.fromIjkMediaPlayer(mInternalPlayer);
+    }
+
+    @Override
+    public void setAudioSessionId(int sessionId) {
+
     }
 
     @Override

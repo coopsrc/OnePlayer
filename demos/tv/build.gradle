@@ -6,18 +6,18 @@ android {
 
     defaultConfig {
         applicationId "com.coopsrc.oneplayer.demo.tv"
-        applicationId "com.coopsrc.oneplayer.demo.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
         versionName rootProject.ext.versionName
+
     }
 
     splits {
         abi {
             enable true
-//            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-            universalApk false
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            universalApk true
         }
     }
 

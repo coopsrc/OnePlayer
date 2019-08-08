@@ -3,7 +3,6 @@ package com.coopsrc.oneplayer.kernel.media2;
 import android.content.Context;
 import android.net.Uri;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 
 import androidx.annotation.Nullable;
 import androidx.media2.player.MediaPlayer2;
@@ -65,18 +64,15 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     }
 
     @Override
+    protected void resetInternalListeners() {
+
+    }
+
+    @Override
     protected void setSurface(@Nullable Surface surface) {
         if (mInternalPlayer != null) {
             mInternalPlayer.setSurface(surface);
         }
-    }
-
-    @Override
-    protected void setDisplay(SurfaceHolder holder) {
-//        if (mInternalPlayer != null) {
-//            mInternalPlayer.setSurface(holder.getSurface());
-//        }
-
     }
 
     @Override
@@ -169,12 +165,6 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     }
 
     @Override
-    public void setVolume(float leftVolume, float rightVolume) {
-
-        mInternalPlayer.setPlayerVolume((leftVolume + rightVolume) / 2);
-    }
-
-    @Override
     public long getCurrentPosition() {
         if (mInternalPlayer != null && isPlaying()) {
             return mInternalPlayer.getCurrentPosition();
@@ -230,6 +220,11 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     @Override
     public ITrackInfo[] getTrackInfo() {
         return new ITrackInfo[0];
+    }
+
+    @Override
+    public void setAudioSessionId(int sessionId) {
+        mInternalPlayer.setAudioSessionId(sessionId);
     }
 
     @Override

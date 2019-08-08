@@ -27,6 +27,7 @@ import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.utils.Assertions;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
+import com.coopsrc.oneplayer.core.video.VideoListener;
 import com.coopsrc.oneplayer.ui.widget.AspectRatioFrameLayout;
 
 import java.lang.annotation.Documented;
@@ -257,8 +258,8 @@ public class PlayerView extends ConstraintLayout {
             return;
         }
         if (this.player != null) {
-            this.player.removeListener(componentListener);
-            this.player.removeVideoSurfaceListener(componentListener);
+            this.player.removeEventListener(componentListener);
+            this.player.removeVideoListener(componentListener);
             if (surfaceView instanceof TextureView) {
                 this.player.clearVideoTextureView((TextureView) surfaceView);
             } else if (surfaceView instanceof SurfaceView) {
@@ -280,8 +281,8 @@ public class PlayerView extends ConstraintLayout {
                 player.setVideoSurfaceView((SurfaceView) surfaceView);
 
             }
-            player.addVideoSurfaceListener(componentListener);
-            player.addListener(componentListener);
+            player.addVideoListener(componentListener);
+            player.addEventListener(componentListener);
             maybeShowController(false);
         } else {
             hideController();
@@ -772,6 +773,7 @@ public class PlayerView extends ConstraintLayout {
 
     private final class ComponentListener
             implements OnePlayer.EventListener,
+            VideoListener,
             OnLayoutChangeListener {
 
 

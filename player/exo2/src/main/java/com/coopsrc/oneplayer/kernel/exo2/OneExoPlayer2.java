@@ -92,13 +92,13 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     @Override
-    protected void setSurface(@Nullable Surface surface) {
-        mInternalPlayer.setVideoSurface(surface);
+    protected void resetInternalListeners() {
+
     }
 
     @Override
-    protected void setDisplay(SurfaceHolder holder) {
-        mInternalPlayer.setVideoSurfaceHolder(holder);
+    protected void setSurface(@Nullable Surface surface) {
+        mInternalPlayer.setVideoSurface(surface);
     }
 
     @Override
@@ -237,13 +237,14 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     @Override
-    public void setVolume(float volume) {
-        mInternalPlayer.setVolume(volume);
+    public void setVolume(float audioVolume) {
+        mInternalPlayer.setVolume(audioVolume);
+        super.setVolume(audioVolume);
     }
 
     @Override
-    public void setVolume(float leftVolume, float rightVolume) {
-        mInternalPlayer.setVolume((leftVolume + rightVolume) / 2);
+    public float getVolume() {
+        return mInternalPlayer.getVolume();
     }
 
     @Override
@@ -309,8 +310,13 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     @Override
+    public void setAudioSessionId(int sessionId) {
+
+    }
+
+    @Override
     public int getAudioSessionId() {
-        return 0;
+        return mInternalPlayer.getAudioSessionId();
     }
 
     @Override

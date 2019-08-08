@@ -3,7 +3,6 @@ package com.coopsrc.oneplayer.kernel.exo;
 import android.content.Context;
 import android.net.Uri;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.OnePlayer;
@@ -88,6 +87,11 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
+    protected void resetInternalListeners() {
+
+    }
+
+    @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
 
         setDataSource(context, uri, null);
@@ -119,16 +123,6 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     @Override
     public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
         // TODO: 19-5-16
-    }
-
-    @Override
-    protected void setDisplay(SurfaceHolder holder) {
-        if (holder == null) {
-            setSurface(null);
-        } else {
-            setSurface(holder.getSurface());
-        }
-
     }
 
     @Override
@@ -220,8 +214,8 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
-    public void setVolume(float leftVolume, float rightVolume) {
-
+    public float getVolume() {
+        return 0;
     }
 
     @Override
@@ -299,6 +293,11 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     @Override
     public ITrackInfo[] getTrackInfo() {
         return new ITrackInfo[0];
+    }
+
+    @Override
+    public void setAudioSessionId(int sessionId) {
+
     }
 
     @Override
