@@ -18,6 +18,7 @@ public class PlayerLogger {
     static {
         Timber.tag(Constants.LOG_TAG);
         Timber.plant(new Timber.DebugTree());
+//        Timber.plant(new LogTree());
     }
 
     public static void i(String message, Object... args) {

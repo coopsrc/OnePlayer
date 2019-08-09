@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi;
 import com.coopsrc.oneplayer.core.audio.AudioComponent;
 import com.coopsrc.oneplayer.core.metadata.MetadataComponent;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
+import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.text.TextComponent;
@@ -36,6 +37,8 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
 
     void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
 
+    void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException;
+
     void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException;
 
     void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException;
@@ -55,9 +58,9 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
 
     void reset();
 
-    void seekTo(long msec, int mode);
+    void seekTo(long positionMs, int mode);
 
-    void seekTo(long msec) throws IllegalStateException;
+    void seekTo(long positionMs) throws IllegalStateException;
 
     long getCurrentPosition();
 
@@ -86,10 +89,6 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
     ITrackInfo[] getTrackInfo();
 
     int getPlaybackState();
-
-    void setPlayWhenReady(boolean playWhenReady);
-
-    boolean getPlayWhenReady();
 
     interface OnBufferingUpdateListener {
         default void onBufferingUpdate(OnePlayer player, int percent) {
@@ -128,6 +127,11 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
         }
     }
 
+    interface OnTimedMetaDataAvailableListener {
+        default void onTimedMetaDataAvailable(OnePlayer player, ITimedMetadata timedMetadata) {
+        }
+    }
+
     interface OnVideoSizeChangedListener {
         default void onVideoSizeChanged(OnePlayer player, int width, int height) {
         }
@@ -146,6 +150,7 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
             OnPreparedListener,
             OnSeekCompleteListener,
             OnTimedTextListener,
+            OnTimedMetaDataAvailableListener,
             OnVideoSizeChangedListener,
             OnPlaybackStateChangedListener {
 

@@ -4,10 +4,15 @@ import android.content.Context;
 import android.net.Uri;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.media2.common.MediaItem;
+import androidx.media2.common.SubtitleData;
 import androidx.media2.player.MediaPlayer2;
 import androidx.media2.player.MediaPlayer2.DrmEventCallback;
 import androidx.media2.player.MediaPlayer2.EventCallback;
+import androidx.media2.player.MediaTimestamp;
+import androidx.media2.player.TimedMetaData;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
 import com.coopsrc.oneplayer.core.OneExecutors;
@@ -25,6 +30,7 @@ import java.util.Map;
  * Date: 2019-06-21 15:27
  */
 public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
+    private static final String TAG = "OneMediaPlayer2";
 
     static {
         PlayerLibraryInfo.registerModule("one.player.media2");
@@ -48,7 +54,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     }
 
     @Override
-    protected PlayerListenerHolder getInternalListener() {
+    protected PlayerListenerWrapper getInternalListener() {
         return null;
     }
 
@@ -77,6 +83,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+
     }
 
     @Override
@@ -86,6 +93,11 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+
+    }
+
+    @Override
+    public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
 
     }
 
@@ -148,20 +160,20 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     }
 
     @Override
-    public void seekTo(long msec, int mode) {
+    public void seekTo(long positionMs, int mode) {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo(msec, mode);
+            mInternalPlayer.seekTo(positionMs, mode);
         }
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
-        mInternalPlayer.seekTo(msec);
+    public void seekTo(long positionMs) throws IllegalStateException {
+        mInternalPlayer.seekTo(positionMs);
     }
 
     @Override
-    public void setVolume(float volume) {
-        mInternalPlayer.setPlayerVolume(volume);
+    public void setVolume(float audioVolume) {
+        mInternalPlayer.setPlayerVolume(audioVolume);
     }
 
     @Override
@@ -232,17 +244,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
         return mInternalPlayer.getAudioSessionId();
     }
 
-    @Override
-    public void setPlayWhenReady(boolean playWhenReady) {
-
-    }
-
-    @Override
-    public boolean getPlayWhenReady() {
-        return false;
-    }
-
-    private class InternalAdapterListener extends PlayerListenerHolder<OneMediaPlayer2> {
+    private class InternalAdapterListener extends PlayerListenerWrapper<OneMediaPlayer2> {
 
         private final EventCallback mEventCallback;
 
@@ -264,7 +266,45 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
         }
 
         private class OneEventCallback extends EventCallback {
+            @Override
+            public void onVideoSizeChanged(MediaPlayer2 mp, MediaItem item, int width, int height) {
+                super.onVideoSizeChanged(mp, item, width, height);
+            }
 
+            @Override
+            public void onTimedMetaDataAvailable(MediaPlayer2 mp, MediaItem item, TimedMetaData data) {
+                super.onTimedMetaDataAvailable(mp, item, data);
+            }
+
+            @Override
+            public void onError(MediaPlayer2 mp, MediaItem item, int what, int extra) {
+                super.onError(mp, item, what, extra);
+            }
+
+            @Override
+            public void onInfo(MediaPlayer2 mp, MediaItem item, int what, int extra) {
+                super.onInfo(mp, item, what, extra);
+            }
+
+            @Override
+            public void onCallCompleted(MediaPlayer2 mp, MediaItem item, int what, int status) {
+                super.onCallCompleted(mp, item, what, status);
+            }
+
+            @Override
+            public void onMediaTimeDiscontinuity(MediaPlayer2 mp, MediaItem item, MediaTimestamp timestamp) {
+                super.onMediaTimeDiscontinuity(mp, item, timestamp);
+            }
+
+            @Override
+            public void onCommandLabelReached(MediaPlayer2 mp, @NonNull Object label) {
+                super.onCommandLabelReached(mp, label);
+            }
+
+            @Override
+            public void onSubtitleData(@NonNull MediaPlayer2 mp, @NonNull MediaItem item, int trackIdx, @NonNull SubtitleData data) {
+                super.onSubtitleData(mp, item, trackIdx, data);
+            }
         }
 
         private class OneDrmEventCallback extends DrmEventCallback {

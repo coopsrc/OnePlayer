@@ -1,6 +1,7 @@
 package com.coopsrc.oneplayer.kernel.exo;
 
 import android.content.Context;
+import android.media.MediaCodec;
 import android.net.Uri;
 import android.view.Surface;
 
@@ -17,10 +18,17 @@ import com.coopsrc.oneplayer.kernel.exo.player.ExtractorRendererBuilder;
 import com.coopsrc.oneplayer.kernel.exo.player.HlsRendererBuilder;
 import com.coopsrc.oneplayer.kernel.exo.player.SmoothStreamingRendererBuilder;
 import com.google.android.exoplayer.ExoPlayer;
+import com.google.android.exoplayer.MediaCodecTrackRenderer;
+import com.google.android.exoplayer.TimeRange;
+import com.google.android.exoplayer.audio.AudioTrack;
+import com.google.android.exoplayer.chunk.Format;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.util.Util;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,7 +44,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     private DemoPlayer mInternalPlayer;
-    private ExoPlayerListenerHolder mInternalAdapterListener;
+    private ExoPlayerListenerWrapper mInternalAdapterListener;
     private EventLogger mEventLogger;
 
     private Surface mSurface;
@@ -54,7 +62,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     public OneExoPlayer(Context context) {
         super(context);
 
-        mInternalAdapterListener = new ExoPlayerListenerHolder(this);
+        mInternalAdapterListener = new ExoPlayerListenerWrapper(this);
 
         mEventLogger = new EventLogger();
         mEventLogger.startSession();
@@ -68,7 +76,7 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
-    protected PlayerListenerHolder getInternalListener() {
+    protected PlayerListenerWrapper getInternalListener() {
         return mInternalAdapterListener;
     }
 
@@ -108,6 +116,11 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     @Override
     public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         setDataSource(getContext(), Uri.parse(path));
+    }
+
+    @Override
+    public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        setDataSource(getContext(), Uri.parse(path), headers);
     }
 
     @Override
@@ -198,19 +211,19 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
     }
 
     @Override
-    public void seekTo(long msec, int mode) {
-        seekTo(msec);
+    public void seekTo(long positionMs, int mode) {
+        seekTo(positionMs);
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
+    public void seekTo(long positionMs) throws IllegalStateException {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo(msec);
+            mInternalPlayer.seekTo(positionMs);
         }
     }
 
     @Override
-    public void setVolume(float volume) {
+    public void setVolume(float audioVolume) {
     }
 
     @Override
@@ -305,16 +318,6 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
         return 0;
     }
 
-    @Override
-    public void setPlayWhenReady(boolean playWhenReady) {
-
-    }
-
-    @Override
-    public boolean getPlayWhenReady() {
-        return false;
-    }
-
     private DemoPlayer.RendererBuilder generateRendererBuilder() {
         Uri contentUri = mUri;
         String userAgent = Util.getUserAgent(getContext(), "OneExoPlayer");
@@ -354,13 +357,18 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
         return Util.inferContentType(lastPathSegment);
     }
 
-    private class ExoPlayerListenerHolder extends PlayerListenerHolder<OneExoPlayer> implements
-            DemoPlayer.Listener {
+    private class ExoPlayerListenerWrapper extends PlayerListenerWrapper<OneExoPlayer> implements
+            DemoPlayer.Listener,
+            DemoPlayer.InfoListener,
+            DemoPlayer.InternalErrorListener,
+            DemoPlayer.CaptionListener,
+            DemoPlayer.Id3MetadataListener {
+
         private boolean mIsPreparing = false;
         private boolean mDidPrepare = false;
         private boolean mIsBuffering = false;
 
-        private ExoPlayerListenerHolder(OneExoPlayer player) {
+        private ExoPlayerListenerWrapper(OneExoPlayer player) {
             super(player);
         }
 
@@ -420,6 +428,96 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
             mVideoWidth = width;
             mVideoHeight = height;
             notifyOnVideoSizeChanged(width, height);
+        }
+
+        @Override
+        public void onRendererInitializationError(Exception e) {
+
+        }
+
+        @Override
+        public void onAudioTrackInitializationError(AudioTrack.InitializationException e) {
+
+        }
+
+        @Override
+        public void onAudioTrackWriteError(AudioTrack.WriteException e) {
+
+        }
+
+        @Override
+        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+
+        }
+
+        @Override
+        public void onDecoderInitializationError(MediaCodecTrackRenderer.DecoderInitializationException e) {
+
+        }
+
+        @Override
+        public void onCryptoError(MediaCodec.CryptoException e) {
+
+        }
+
+        @Override
+        public void onLoadError(int sourceId, IOException e) {
+
+        }
+
+        @Override
+        public void onDrmSessionManagerError(Exception e) {
+
+        }
+
+        @Override
+        public void onVideoFormatEnabled(Format format, int trigger, long mediaTimeMs) {
+
+        }
+
+        @Override
+        public void onAudioFormatEnabled(Format format, int trigger, long mediaTimeMs) {
+
+        }
+
+        @Override
+        public void onDroppedFrames(int count, long elapsed) {
+
+        }
+
+        @Override
+        public void onBandwidthSample(int elapsedMs, long bytes, long bitrateEstimate) {
+
+        }
+
+        @Override
+        public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs) {
+
+        }
+
+        @Override
+        public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
+
+        }
+
+        @Override
+        public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+
+        }
+
+        @Override
+        public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
+
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+
+        }
+
+        @Override
+        public void onId3Metadata(List<Id3Frame> id3Frames) {
+
         }
     }
 }

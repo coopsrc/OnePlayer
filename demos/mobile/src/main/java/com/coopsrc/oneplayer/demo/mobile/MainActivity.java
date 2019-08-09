@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.coopsrc.oneplayer.PlayerFactory;
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
+import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String DASH_SECURE_SD = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd";
     private static final String DASH_SECURE_HD = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_hd.mpd";
     private static final String DASH_SECURE_UHD = "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_uhd.mpd";
-    private Map<String, String> dashHeaders = new HashMap<>();
+    private Map<String, String> headersMap = new HashMap<>();
 
     private static final String SS = "https://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism";
 
@@ -74,14 +75,15 @@ public class MainActivity extends AppCompatActivity {
 
         mPlayerView = findViewById(R.id.player_view);
 
-//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia2);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
 
         mPlayer.setScreenOnWhilePlaying(true);
         mPlayer.addEventListener(new OnePlayer.EventListener() {
+
             @Override
             public void onBufferingUpdate(OnePlayer player, int percent) {
                 PlayerLogger.i(TAG, "onBufferingUpdate: percent=%s", percent);
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCompletion(OnePlayer player) {
-
+                PlayerLogger.i(TAG, "onCompletion: ");
             }
 
             @Override
@@ -113,22 +115,27 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSeekComplete(OnePlayer player) {
-
+                PlayerLogger.i(TAG, "onSeekComplete: ");
             }
 
             @Override
             public void onTimedText(OnePlayer player, ITimedText text) {
+                PlayerLogger.i(TAG, "onTimedText: ");
+            }
 
+            @Override
+            public void onTimedMetaDataAvailable(OnePlayer player, ITimedMetadata timedMetadata) {
+                PlayerLogger.i(TAG, "onTimedMetaDataAvailable: ");
             }
 
             @Override
             public void onVideoSizeChanged(OnePlayer player, int width, int height) {
-
+                PlayerLogger.i(TAG, "onVideoSizeChanged: ");
             }
 
             @Override
             public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
-
+                PlayerLogger.i(TAG, "onPlaybackStateChanged: ");
             }
         });
 
@@ -170,11 +177,13 @@ public class MainActivity extends AppCompatActivity {
 //            mPlayer.setDataSource(_360_congo);
 
             // dash h264 mp4 drm
-//                dashHeaders.put("contentId", "");
-//                dashHeaders.put("provider", "widevine_test");
-//                mPlayer.setVideoURI(Uri.parse(DASH_SECURE_SD), dashHeaders);
+//                headersMap.put("contentId", "");
+//                headersMap.put("provider", "widevine_test");
+//                mPlayer.setVideoURI(Uri.parse(DASH_SECURE_SD), headersMap);
 
-//            mPlayer.setDataSource(MPD);
+
+//            headersMap.put("extension", "mpd");
+//            mPlayer.setDataSource(MPD, headersMap);
 
         } catch (Exception e) {
             e.printStackTrace();

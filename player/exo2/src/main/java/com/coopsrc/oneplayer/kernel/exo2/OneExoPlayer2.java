@@ -23,18 +23,26 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.audio.AudioListener;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.VideoListener;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -73,7 +81,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     @Override
-    protected PlayerListenerHolder getInternalListener() {
+    protected PlayerListenerWrapper getInternalListener() {
         return mInternalAdapterListener;
     }
 
@@ -89,6 +97,10 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     @Override
     protected void attachInternalListeners() {
         mInternalPlayer.addListener(mInternalAdapterListener);
+        mInternalPlayer.addAudioListener(mInternalAdapterListener);
+        mInternalPlayer.addVideoListener(mInternalAdapterListener);
+        mInternalPlayer.addTextOutput(mInternalAdapterListener);
+        mInternalPlayer.addMetadataOutput(mInternalAdapterListener);
     }
 
     @Override
@@ -161,8 +173,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         PlayerLogger.i(TAG, "setDataSource: %s", uri);
-
-        mMediaSource = buildMediaSource(uri);
+        setDataSource(context, uri, null);
     }
 
     @Override
@@ -170,7 +181,11 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
         PlayerLogger.i(TAG, "setDataSource: %s", uri);
 
-        mMediaSource = buildMediaSource(uri);
+        if (headers != null) {
+            mMediaSource = buildMediaSource(uri, headers.get("extension"));
+        } else {
+            mMediaSource = buildMediaSource(uri);
+        }
     }
 
     @Override
@@ -178,7 +193,14 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
         PlayerLogger.i(TAG, "setDataSource: %s", path);
 
-        mMediaSource = buildMediaSource(Uri.parse(path));
+        setDataSource(getContext(), Uri.parse(path));
+    }
+
+    @Override
+    public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: %s, %s", path, headers);
+
+        setDataSource(getContext(), Uri.parse(path), headers);
     }
 
     @Override
@@ -218,7 +240,8 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
     @Override
     public boolean release() {
-        return false;
+        mInternalPlayer.release();
+        return true;
     }
 
     @Override
@@ -227,13 +250,13 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     @Override
-    public void seekTo(long msec, int mode) {
-        mInternalPlayer.seekTo(msec);
+    public void seekTo(long positionMs, int mode) {
+        mInternalPlayer.seekTo(positionMs);
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
-        mInternalPlayer.seekTo(msec);
+    public void seekTo(long positionMs) throws IllegalStateException {
+        mInternalPlayer.seekTo(positionMs);
     }
 
     @Override
@@ -250,6 +273,16 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     @Override
     public long getCurrentPosition() {
         return mInternalPlayer.getCurrentPosition();
+    }
+
+    @Override
+    public int getBufferedPercentage() {
+        return mInternalPlayer.getBufferedPercentage();
+    }
+
+    @Override
+    public long getBufferedPosition() {
+        return mInternalPlayer.getBufferedPosition();
     }
 
     @Override
@@ -319,22 +352,12 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         return mInternalPlayer.getAudioSessionId();
     }
 
-    @Override
-    public void setPlayWhenReady(boolean playWhenReady) {
-        mInternalPlayer.setPlayWhenReady(playWhenReady);
-    }
-
-    @Override
-    public boolean getPlayWhenReady() {
-        return mInternalPlayer.getPlayWhenReady();
-    }
-
-
     private MediaSource buildMediaSource(Uri uri) {
         return buildMediaSource(uri, null);
     }
 
     private MediaSource buildMediaSource(Uri uri, @Nullable String overrideExtension) {
+        PlayerLogger.i(TAG, "buildMediaSource: [%s, %s]", uri, overrideExtension);
         @C.ContentType
         int type = Util.inferContentType(uri, overrideExtension);
         switch (type) {
@@ -351,7 +374,8 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         }
     }
 
-    private class InternalAdapterListener extends PlayerListenerHolder<OneExoPlayer2> implements Player.EventListener {
+    private class InternalAdapterListener extends PlayerListenerWrapper<OneExoPlayer2> implements
+            Player.EventListener, AudioListener, VideoListener, TextOutput, MetadataOutput {
 
         public InternalAdapterListener(OneExoPlayer2 player) {
             super(player);
@@ -359,52 +383,99 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
         @Override
         public void onTimelineChanged(Timeline timeline, @Nullable Object manifest, int reason) {
-
+            PlayerLogger.i(TAG, "onTimelineChanged: [%s,%s,%s]", timeline, manifest, reason);
         }
 
         @Override
         public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
+            PlayerLogger.i(TAG, "onTracksChanged: [%s,%s]", trackGroups, trackSelections);
         }
 
         @Override
         public void onLoadingChanged(boolean isLoading) {
-
+            PlayerLogger.i(TAG, "onLoadingChanged: %s", isLoading);
+            notifyOnBufferingUpdate(getBufferedPercentage());
         }
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-
+            PlayerLogger.i(TAG, "onPlayerStateChanged: [%s,%s]", playWhenReady, playbackState);
         }
 
         @Override
         public void onRepeatModeChanged(int repeatMode) {
-
+            PlayerLogger.i(TAG, "onRepeatModeChanged: %s", repeatMode);
         }
 
         @Override
         public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
-
+            PlayerLogger.i(TAG, "onShuffleModeEnabledChanged: %s", shuffleModeEnabled);
         }
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
-
+            PlayerLogger.i(TAG, "onPlayerError: %s", error);
         }
 
         @Override
         public void onPositionDiscontinuity(int reason) {
-
+            PlayerLogger.i(TAG, "onPositionDiscontinuity: %s", reason);
         }
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-
+            PlayerLogger.i(TAG, "onPlaybackParametersChanged: %s", playbackParameters);
         }
 
         @Override
         public void onSeekProcessed() {
+            PlayerLogger.i(TAG, "onSeekProcessed: ");
+        }
 
+        @Override
+        public void onMetadata(Metadata metadata) {
+            PlayerLogger.i(TAG, "onMetadata: %s", metadata);
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+            PlayerLogger.i(TAG, "onCues: %s", cues);
+        }
+
+        @Override
+        public void onAudioSessionId(int audioSessionId) {
+            PlayerLogger.i(TAG, "onAudioSessionId: %s", audioSessionId);
+        }
+
+        @Override
+        public void onAudioAttributesChanged(AudioAttributes audioAttributes) {
+            PlayerLogger.i(TAG, "onAudioAttributesChanged: %s", audioAttributes);
+        }
+
+        @Override
+        public void onVolumeChanged(float volume) {
+            PlayerLogger.i(TAG, "onVolumeChanged: %s", volume);
+        }
+
+        @Override
+        public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+            PlayerLogger.i(TAG, "onVideoSizeChanged: [%s,%s][%s,%s]", width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
+            mVideoWidth = width;
+            mVideoHeight = height;
+            notifyOnVideoSizeChanged(width, height);
+            notifyOnVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
+        }
+
+        @Override
+        public void onSurfaceSizeChanged(int width, int height) {
+            PlayerLogger.i(TAG, "onSurfaceSizeChanged: [%s,%s]", width, height);
+            notifyOnSurfaceSizeChanged(width, height);
+        }
+
+        @Override
+        public void onRenderedFirstFrame() {
+            PlayerLogger.i(TAG, "onRenderedFirstFrame: ");
+            notifyOnRenderedFirstFrame();
         }
     }
 }

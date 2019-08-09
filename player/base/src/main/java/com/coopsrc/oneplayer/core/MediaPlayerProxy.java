@@ -120,6 +120,11 @@ public class MediaPlayerProxy implements OnePlayer {
     }
 
     @Override
+    public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        mBackendPlayer.setDataSource(path, headers);
+    }
+
+    @Override
     public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
         mBackendPlayer.setDataSource(fd);
     }
@@ -166,18 +171,18 @@ public class MediaPlayerProxy implements OnePlayer {
     }
 
     @Override
-    public void seekTo(long msec, int mode) {
-        mBackendPlayer.seekTo(msec, mode);
+    public void seekTo(long positionMs, int mode) {
+        mBackendPlayer.seekTo(positionMs, mode);
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
-        mBackendPlayer.seekTo(msec);
+    public void seekTo(long positionMs) throws IllegalStateException {
+        mBackendPlayer.seekTo(positionMs);
     }
 
     @Override
-    public void setVolume(float volume) {
-        mBackendPlayer.setVolume(volume);
+    public void setVolume(float audioVolume) {
+        mBackendPlayer.setVolume(audioVolume);
     }
 
     @Override
@@ -273,16 +278,6 @@ public class MediaPlayerProxy implements OnePlayer {
     @Override
     public int getPlaybackState() {
         return mBackendPlayer.getPlaybackState();
-    }
-
-    @Override
-    public void setPlayWhenReady(boolean playWhenReady) {
-        mBackendPlayer.setPlayWhenReady(playWhenReady);
-    }
-
-    @Override
-    public boolean getPlayWhenReady() {
-        return mBackendPlayer.getPlayWhenReady();
     }
 
     @Override

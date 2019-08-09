@@ -3,6 +3,7 @@ package com.coopsrc.oneplayer.kernel.ijkmedia;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.view.Surface;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
@@ -35,7 +36,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     private IjkMediaPlayer mInternalPlayer;
-    private IjkMediaPlayerListenerHolder mInternalAdapterListener;
+    private IjkMediaPlayerListenerWrapper mInternalAdapterListener;
 
     private final Object mLock = new Object();
 
@@ -45,7 +46,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         synchronized (mLock) {
             initializePlayer();
         }
-        mInternalAdapterListener = new IjkMediaPlayerListenerHolder(this);
+        mInternalAdapterListener = new IjkMediaPlayerListenerWrapper(this);
         attachInternalListeners();
     }
 
@@ -55,13 +56,12 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     @Override
-    protected PlayerListenerHolder getInternalListener() {
+    protected PlayerListenerWrapper getInternalListener() {
         return mInternalAdapterListener;
     }
 
     @Override
     protected void initializePlayer() {
-
         mInternalPlayer = new IjkMediaPlayer();
         mInternalPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mInternalPlayer.setScreenOnWhilePlaying(true);
@@ -77,6 +77,9 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         mInternalPlayer.setOnSeekCompleteListener(mInternalAdapterListener);
         mInternalPlayer.setOnTimedTextListener(mInternalAdapterListener);
         mInternalPlayer.setOnVideoSizeChangedListener(mInternalAdapterListener);
+        mInternalPlayer.setOnControlMessageListener(mInternalAdapterListener);
+        mInternalPlayer.setOnMediaCodecSelectListener(mInternalAdapterListener);
+        mInternalPlayer.setOnNativeInvokeListener(mInternalAdapterListener);
     }
 
     @Override
@@ -103,14 +106,16 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     @Override
-    public void setDataSource(String path) {
+    public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         if (mInternalPlayer != null) {
-            try {
-                mInternalPlayer.setDataSource(path);
-            } catch (IOException e) {
-                e.printStackTrace();
-                PlayerLogger.e(TAG, e.getMessage());
-            }
+            mInternalPlayer.setDataSource(path);
+        }
+    }
+
+    @Override
+    public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        if (mInternalPlayer != null) {
+            mInternalPlayer.setDataSource(path, headers);
         }
     }
 
@@ -125,7 +130,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     @Override
     public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
         if (mInternalPlayer != null) {
-//            mInternalPlayer.setDataSource(fd, offset, length);
+            mInternalPlayer.setDataSource(fd);
         }
     }
 
@@ -192,30 +197,30 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
     }
 
     @Override
-    public void seekTo(long msec, int mode) {
+    public void seekTo(long positionMs, int mode) {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo(msec);
+            mInternalPlayer.seekTo(positionMs);
         }
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
+    public void seekTo(long positionMs) throws IllegalStateException {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo(msec);
+            mInternalPlayer.seekTo(positionMs);
         }
     }
 
     @Override
-    public void setVolume(float volume) {
-        super.setVolume(volume);
+    public void setVolume(float audioVolume) {
+        super.setVolume(audioVolume);
         if (mInternalPlayer != null) {
-            mInternalPlayer.setVolume(volume, volume);
+            mInternalPlayer.setVolume(audioVolume, audioVolume);
         }
     }
 
     @Override
     public float getVolume() {
-        return mInternalPlayer.getAudioSessionId();
+        return super.getVolume();
     }
 
     @Override
@@ -318,17 +323,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         return mInternalPlayer.getAudioSessionId();
     }
 
-    @Override
-    public void setPlayWhenReady(boolean playWhenReady) {
-
-    }
-
-    @Override
-    public boolean getPlayWhenReady() {
-        return false;
-    }
-
-    private class IjkMediaPlayerListenerHolder extends PlayerListenerHolder<OneIjkPlayer> implements
+    private class IjkMediaPlayerListenerWrapper extends PlayerListenerWrapper<OneIjkPlayer> implements
             IjkMediaPlayer.OnBufferingUpdateListener,
             IjkMediaPlayer.OnCompletionListener,
             IjkMediaPlayer.OnErrorListener,
@@ -336,14 +331,18 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
             IjkMediaPlayer.OnPreparedListener,
             IjkMediaPlayer.OnSeekCompleteListener,
             IjkMediaPlayer.OnTimedTextListener,
-            IjkMediaPlayer.OnVideoSizeChangedListener {
+            IjkMediaPlayer.OnVideoSizeChangedListener,
+            IjkMediaPlayer.OnControlMessageListener,
+            IjkMediaPlayer.OnMediaCodecSelectListener,
+            IjkMediaPlayer.OnNativeInvokeListener {
 
-        private IjkMediaPlayerListenerHolder(OneIjkPlayer player) {
+        private IjkMediaPlayerListenerWrapper(OneIjkPlayer player) {
             super(player);
         }
 
         @Override
         public void onBufferingUpdate(IMediaPlayer mp, int percent) {
+            PlayerLogger.v(TAG, "onBufferingUpdate: %s", percent);
             if (getPlayer() != null) {
                 notifyOnBufferingUpdate(percent);
             }
@@ -351,6 +350,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public void onCompletion(IMediaPlayer mp) {
+            PlayerLogger.i(TAG, "onCompletion: ");
             if (getPlayer() != null) {
                 notifyOnCompletion();
             }
@@ -358,6 +358,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public boolean onError(IMediaPlayer mp, int what, int extra) {
+            PlayerLogger.i(TAG, "onError: [%s,%s]", what, extra);
             if (getPlayer() != null) {
                 return notifyOnError(what, extra);
             }
@@ -366,6 +367,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public boolean onInfo(IMediaPlayer mp, int what, int extra) {
+            PlayerLogger.i(TAG, "onInfo: [%s,%s]", what, extra);
             if (getPlayer() != null) {
                 return notifyOnInfo(what, extra);
             }
@@ -375,6 +377,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public void onPrepared(IMediaPlayer mp) {
+            PlayerLogger.i(TAG, "onPrepared: ");
             if (getPlayer() != null) {
                 notifyOnPrepared();
             }
@@ -382,6 +385,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public void onSeekComplete(IMediaPlayer mp) {
+            PlayerLogger.i(TAG, "onSeekComplete: ");
             if (getPlayer() != null) {
                 notifyOnSeekComplete();
             }
@@ -389,6 +393,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public void onTimedText(IMediaPlayer mp, IjkTimedText text) {
+            PlayerLogger.i(TAG, "onTimedText: %s", text);
             if (getPlayer() != null) {
                 notifyOnTimedText(new OneTimedText(text.getBounds(), text.getText()));
             }
@@ -396,9 +401,28 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
 
         @Override
         public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sar_num, int sar_den) {
+            PlayerLogger.i(TAG, "onVideoSizeChanged: [%s,%s] - [%s,%s]", width, height, sar_num, sar_den);
             if (getPlayer() != null) {
                 notifyOnVideoSizeChanged(width, height);
             }
+        }
+
+        @Override
+        public String onControlResolveSegmentUrl(int i) {
+            PlayerLogger.i(TAG, "onControlResolveSegmentUrl: %s", i);
+            return null;
+        }
+
+        @Override
+        public String onMediaCodecSelect(IMediaPlayer iMediaPlayer, String s, int i, int i1) {
+            PlayerLogger.i(TAG, "onMediaCodecSelect: [%s,%s,%s]", s, i, i1);
+            return null;
+        }
+
+        @Override
+        public boolean onNativeInvoke(int i, Bundle bundle) {
+            PlayerLogger.d(TAG, "onNativeInvoke: [%s]%s", i, bundle);
+            return false;
         }
     }
 }

@@ -35,7 +35,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     private final MediaPlayer mInternalPlayer;
-    private final MediaPlayerListenerHolder mInternalAdapterListener;
+    private final MediaPlayerListenerWrapper mInternalAdapterListener;
 
     private final Object mLock = new Object();
 
@@ -47,24 +47,22 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
             mInternalPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mInternalPlayer.setScreenOnWhilePlaying(true);
         }
-        mInternalAdapterListener = new MediaPlayerListenerHolder(this);
+        mInternalAdapterListener = new MediaPlayerListenerWrapper(this);
         attachInternalListeners();
     }
 
 
     @Override
-    public void setDataSource(Context context, Uri uri) {
+    public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, IllegalStateException, SecurityException {
+        PlayerLogger.i(TAG, "setDataSource: %s", uri);
         if (mInternalPlayer != null) {
-            try {
-                mInternalPlayer.setDataSource(context, uri);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            mInternalPlayer.setDataSource(context, uri);
         }
     }
 
     @Override
     public void setDataSource(Context context, Uri uri, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: [%s] %s", uri, headers);
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(context, uri, headers);
         }
@@ -72,6 +70,15 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: %s", path);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.setDataSource(path);
+        }
+    }
+
+    @Override
+    public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: [%s] %s", path, headers);
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(path);
         }
@@ -79,6 +86,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: %s", fd);
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(fd);
         }
@@ -86,6 +94,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: [%s, %s/%s]", fd, offset, length);
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(fd, offset, length);
         }
@@ -94,6 +103,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
+        PlayerLogger.i(TAG, "setDataSource: %s", dataSource);
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(new AndroidMediaDataSource(dataSource));
         }
@@ -162,30 +172,25 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @TargetApi(Build.VERSION_CODES.O)
     @Override
-    public void seekTo(long msec, int mode) {
+    public void seekTo(long positionMs, int mode) {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo(msec, mode);
+            mInternalPlayer.seekTo(positionMs, mode);
         }
     }
 
     @Override
-    public void seekTo(long msec) throws IllegalStateException {
+    public void seekTo(long positionMs) throws IllegalStateException {
         if (mInternalPlayer != null) {
-            mInternalPlayer.seekTo((int) msec);
+            mInternalPlayer.seekTo((int) positionMs);
         }
     }
 
     @Override
-    public void setVolume(float volume) {
-        super.setVolume(volume);
+    public void setVolume(float audioVolume) {
+        super.setVolume(audioVolume);
         if (mInternalPlayer != null) {
-            mInternalPlayer.setVolume(volume, volume);
+            mInternalPlayer.setVolume(audioVolume, audioVolume);
         }
-    }
-
-    @Override
-    public float getVolume() {
-        return super.getVolume();
     }
 
     @Override
@@ -292,27 +297,12 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
-    public long getBufferedPosition() {
-        return 0;
-    }
-
-    @Override
-    public void setPlayWhenReady(boolean playWhenReady) {
-
-    }
-
-    @Override
-    public boolean getPlayWhenReady() {
-        return false;
-    }
-
-    @Override
     public MediaPlayer getInternalPlayer() {
         return mInternalPlayer;
     }
 
     @Override
-    protected PlayerListenerHolder getInternalListener() {
+    protected PlayerListenerWrapper getInternalListener() {
         return mInternalAdapterListener;
     }
 
@@ -338,7 +328,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     }
 
-    private class MediaPlayerListenerHolder extends PlayerListenerHolder<OneMediaPlayer> implements
+    private class MediaPlayerListenerWrapper extends PlayerListenerWrapper<OneMediaPlayer> implements
             MediaPlayer.OnBufferingUpdateListener,
             MediaPlayer.OnCompletionListener,
             MediaPlayer.OnErrorListener,
@@ -348,36 +338,40 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
             MediaPlayer.OnTimedTextListener,
             MediaPlayer.OnVideoSizeChangedListener {
 
-        private MediaPlayerListenerHolder(OneMediaPlayer player) {
+        private MediaPlayerListenerWrapper(OneMediaPlayer player) {
             super(player);
         }
 
         @Override
         public void onBufferingUpdate(MediaPlayer mp, int percent) {
+            PlayerLogger.v(TAG, "onBufferingUpdate: %s", percent);
             if (getPlayer() != null) {
-                notifyOnBufferingUpdate(percent);
+                getPlayer().notifyOnBufferingUpdate(percent);
             }
         }
 
         @Override
         public void onCompletion(MediaPlayer mp) {
+            PlayerLogger.i(TAG, "onCompletion: ");
             if (getPlayer() != null) {
-                notifyOnCompletion();
+                getPlayer().notifyOnCompletion();
             }
         }
 
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
+            PlayerLogger.i(TAG, "onError: [%s,%s]", what, extra);
             if (getPlayer() != null) {
-                return notifyOnError(what, extra);
+                return getPlayer().notifyOnError(what, extra);
             }
             return false;
         }
 
         @Override
         public boolean onInfo(MediaPlayer mp, int what, int extra) {
+            PlayerLogger.i(TAG, "onInfo: [%s,%s]", what, extra);
             if (getPlayer() != null) {
-                return notifyOnInfo(what, extra);
+                return getPlayer().notifyOnInfo(what, extra);
             }
 
             return false;
@@ -385,29 +379,33 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
         @Override
         public void onPrepared(MediaPlayer mp) {
+            PlayerLogger.i(TAG, "onPrepared: ");
             if (getPlayer() != null) {
-                notifyOnPrepared();
+                getPlayer().notifyOnPrepared();
             }
         }
 
         @Override
         public void onSeekComplete(MediaPlayer mp) {
+            PlayerLogger.i(TAG, "onSeekComplete: ");
             if (getPlayer() != null) {
-                notifyOnSeekComplete();
+                getPlayer().notifyOnSeekComplete();
             }
         }
 
         @Override
         public void onTimedText(MediaPlayer mp, TimedText text) {
+            PlayerLogger.i(TAG, "onTimedText: %s", text);
             if (getPlayer() != null && text != null) {
-                notifyOnTimedText(new OneTimedText(text.getBounds(), text.getText()));
+                getPlayer().notifyOnTimedText(new OneTimedText(text.getBounds(), text.getText()));
             }
         }
 
         @Override
         public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+            PlayerLogger.i(TAG, "onVideoSizeChanged: [%s,%s]", width, height);
             if (getPlayer() != null) {
-                notifyOnVideoSizeChanged(width, height);
+                getPlayer().notifyOnVideoSizeChanged(width, height);
             }
         }
     }

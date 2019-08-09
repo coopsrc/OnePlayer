@@ -22,6 +22,7 @@ import com.coopsrc.oneplayer.core.DefaultControlDispatcher;
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
+import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
@@ -135,8 +136,7 @@ public class PlayerControlView extends ConstraintLayout {
         this(context, attrs, defStyleAttr, attrs);
     }
 
-    public PlayerControlView(
-            Context context, AttributeSet attrs, int defStyleAttr, AttributeSet playbackAttrs) {
+    public PlayerControlView( Context context, AttributeSet attrs, int defStyleAttr, AttributeSet playbackAttrs) {
         super(context, attrs, defStyleAttr);
         int controllerLayoutId = R.layout.layout_playback_control_view;
         rewindMs = DEFAULT_REWIND_MS;
@@ -247,7 +247,7 @@ public class PlayerControlView extends ConstraintLayout {
         if (player != null) {
             player.addEventListener(componentListener);
         }
-        updateAll();
+//        updateAll();
     }
 
     /**
@@ -359,7 +359,7 @@ public class PlayerControlView extends ConstraintLayout {
             if (visibilityListener != null) {
                 visibilityListener.onVisibilityChange(getVisibility());
             }
-            updateAll();
+//            updateAll();
             requestPlayPauseFocus();
         }
         // Call hideAfterTimeout even if already visible to reset the timeout.
@@ -453,7 +453,7 @@ public class PlayerControlView extends ConstraintLayout {
         if (timeBar != null) {
             timeBar.setDuration(duration);
         }
-        updateProgress();
+//        updateProgress();
     }
 
     private void updateProgress() {
@@ -483,7 +483,7 @@ public class PlayerControlView extends ConstraintLayout {
         // Cancel any pending updates and schedule a new one if necessary.
         removeCallbacks(updateProgressAction);
         int playbackState = player == null ? OnePlayer.STATE_IDLE : player.getPlaybackState();
-        if (playbackState == OnePlayer.STATE_PREPARED && player.getPlayWhenReady()) {
+        if (playbackState == OnePlayer.STATE_PREPARED ) {
             long mediaTimeDelayMs = timeBar != null ? timeBar.getPreferredUpdateDelay() : MAX_UPDATE_INTERVAL_MS;
 
             // Limit delay to the start of the next full second to ensure position display is smooth.
@@ -495,11 +495,11 @@ public class PlayerControlView extends ConstraintLayout {
 
             // Constrain the delay to avoid too frequent / infrequent updates.
             delayMs = PlayerUtils.constrainValue(delayMs, timeBarMinUpdateIntervalMs, MAX_UPDATE_INTERVAL_MS);
-            postDelayed(updateProgressAction, delayMs);
+//            postDelayed(updateProgressAction, delayMs);
         } else if (playbackState != OnePlayer.STATE_ENDED && playbackState != OnePlayer.STATE_IDLE) {
-            postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
+//            postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
         }
-        postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
+//        postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
     }
 
     private void requestPlayPauseFocus() {
@@ -570,7 +570,7 @@ public class PlayerControlView extends ConstraintLayout {
         } else if (isVisible()) {
             hideAfterTimeout();
         }
-        updateAll();
+//        updateAll();
     }
 
     @Override
@@ -616,7 +616,6 @@ public class PlayerControlView extends ConstraintLayout {
             } else if (event.getRepeatCount() == 0) {
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                        controlDispatcher.dispatchSetPlayWhenReady(player, !player.getPlayWhenReady());
                         break;
                     case KeyEvent.KEYCODE_MEDIA_PLAY:
                         controlDispatcher.dispatchSetPlayWhenReady(player, true);
@@ -641,8 +640,7 @@ public class PlayerControlView extends ConstraintLayout {
     private boolean isPlaying() {
         return player != null
                 && player.getPlaybackState() != OnePlayer.STATE_ENDED
-                && player.getPlaybackState() != OnePlayer.STATE_IDLE
-                && player.getPlayWhenReady();
+                && player.getPlaybackState() != OnePlayer.STATE_IDLE;
     }
 
     private static boolean isHandledMediaKey(int keyCode) {

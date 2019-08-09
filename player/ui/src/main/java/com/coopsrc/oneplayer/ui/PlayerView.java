@@ -695,8 +695,7 @@ public class PlayerView extends ConstraintLayout {
         int playbackState = player.getPlaybackState();
         return controllerAutoShow
                 && (playbackState == OnePlayer.STATE_IDLE
-                || playbackState == OnePlayer.STATE_ENDED
-                || !player.getPlayWhenReady());
+                || playbackState == OnePlayer.STATE_ENDED);
     }
 
     private void showController(boolean showIndefinitely) {
@@ -713,7 +712,7 @@ public class PlayerView extends ConstraintLayout {
                     player != null
                             && player.getPlaybackState() == OnePlayer.STATE_BUFFERING
                             && (showBuffering == SHOW_BUFFERING_ALWAYS
-                            || (showBuffering == SHOW_BUFFERING_WHEN_PLAYING && player.getPlayWhenReady()));
+                            || (showBuffering == SHOW_BUFFERING_WHEN_PLAYING));
             bufferingView.setVisibility(showBufferingSpinner ? View.VISIBLE : View.GONE);
         }
     }
@@ -771,10 +770,8 @@ public class PlayerView extends ConstraintLayout {
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER;
     }
 
-    private final class ComponentListener
-            implements OnePlayer.EventListener,
-            VideoListener,
-            OnLayoutChangeListener {
+    private final class ComponentListener implements OnePlayer.EventListener,
+            VideoListener, OnLayoutChangeListener {
 
 
         @Override
