@@ -33,10 +33,10 @@ dependencies {
 
     api project(':player-base')
 
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.10.3'
-    implementation 'com.google.android.exoplayer:exoplayer-dash:2.10.3'
-    implementation 'com.google.android.exoplayer:exoplayer-hls:2.10.3'
-    implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.3'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.10.4'
+    implementation 'com.google.android.exoplayer:exoplayer-dash:2.10.4'
+    implementation 'com.google.android.exoplayer:exoplayer-hls:2.10.4'
+    implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.10.4'
 }
 
 
