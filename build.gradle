@@ -32,8 +32,9 @@ ext {
     minSdkVersion = 21
     targetSdkVersion = 29
 
-    versionCode = 1000000
-    versionName = '1.0.0'
+    // 1.000.000
+    versionCode = 1000001
+    versionName = '1.0.1'
 
     appcompatVersion = '1.0.2'
     constraintlayoutVersion = '1.1.3'

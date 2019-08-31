@@ -1,5 +1,7 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -7,6 +9,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.WindowManager;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.coopsrc.oneplayer.PlayerFactory;
@@ -227,10 +230,10 @@ public class MainActivity extends AppCompatActivity {
         // Checks the orientation of the screen
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//隐藏状态栏
-            PlayerUtils.hideActionBar(this);
+//            PlayerUtils.hideActionBar(this);
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); //显示状态栏
-            PlayerUtils.showActionBar(this);
+//            PlayerUtils.showActionBar(this);
         }
     }
 

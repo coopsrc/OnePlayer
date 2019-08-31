@@ -29,8 +29,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.annotation:annotation:1.1.0'
-
     api project(':player-base')
     api project(':player-media')
     api project(':player-media2')

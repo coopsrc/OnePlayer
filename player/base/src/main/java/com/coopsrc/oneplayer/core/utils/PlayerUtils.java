@@ -1,14 +1,9 @@
 package com.coopsrc.oneplayer.core.utils;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Build;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.ContextThemeWrapper;
 
 import org.checkerframework.checker.nullness.compatqual.NullableType;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
@@ -85,50 +80,6 @@ public final class PlayerUtils {
     public static Activity scanForActivity(Context context) {
         return context == null ? null : (context instanceof Activity ? (Activity) context : (context instanceof ContextWrapper ? scanForActivity(((ContextWrapper) context).getBaseContext()) : null));
     }
-
-    /**
-     * Get AppCompatActivity from context
-     */
-    public static AppCompatActivity getAppCompatActivity(Context context) {
-        if (context == null) return null;
-        if (context instanceof AppCompatActivity) {
-            return (AppCompatActivity) context;
-        } else if (context instanceof ContextThemeWrapper) {
-            return getAppCompatActivity(((ContextThemeWrapper) context).getBaseContext());
-        }
-        return null;
-    }
-
-    /**
-     * hide ActionBar
-     */
-    @SuppressLint("RestrictedApi")
-    public static void hideActionBar(Context context) {
-        AppCompatActivity appCompatActivity = getAppCompatActivity(context);
-        if (appCompatActivity != null) {
-            ActionBar actionBar = appCompatActivity.getSupportActionBar();
-            if (actionBar != null && actionBar.isShowing()) {
-                actionBar.setShowHideAnimationEnabled(false);
-                actionBar.hide();
-            }
-        }
-    }
-
-    /**
-     * show ActionBar
-     */
-    @SuppressLint("RestrictedApi")
-    public static void showActionBar(final Context context) {
-        AppCompatActivity appCompatActivity = getAppCompatActivity(context);
-        if (appCompatActivity != null) {
-            ActionBar ab = appCompatActivity.getSupportActionBar();
-            if (ab != null && !ab.isShowing()) {
-                ab.setShowHideAnimationEnabled(false);
-                ab.show();
-            }
-        }
-    }
-
 
     /**
      * Constrains a value to the specified bounds.

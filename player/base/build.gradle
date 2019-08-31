@@ -29,8 +29,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'androidx.annotation:annotation:1.1.0'
+    api 'androidx.annotation:annotation:1.1.0'
 
     implementation "com.jakewharton.timber:timber:$timberVersion"
 

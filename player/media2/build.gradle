@@ -9,7 +9,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
 //        versionName rootProject.ext.versionName
-        versionName "1.0.0-rc01"
+        versionName "1.0.0-rc02"
 
     }
 
@@ -30,17 +30,16 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation "androidx.media2:media2-common:1.0.0-rc01"
-    implementation "androidx.media2:media2-player:1.0.0-rc01"
-    implementation "androidx.media2:media2-session:1.0.0-rc01"
-
     api project(':player-base')
+
+    implementation "androidx.media2:media2-common:1.0.0-rc02"
+    implementation "androidx.media2:media2-player:1.0.0-rc02"
+    implementation "androidx.media2:media2-session:1.0.0-rc02"
 }
 
 ext {
     releaseArtifact = 'oneplayer-media2'
     releaseDescription = 'The OnePlayer library MediaPlayer2 kernel module.'
-    versionName = "1.0.0-rc01"
+    versionName = "1.0.0-rc02"
 }
 apply from: '../../publish.gradle'
