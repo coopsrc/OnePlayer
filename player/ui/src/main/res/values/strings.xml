@@ -1,0 +1,15 @@
+<resources>
+    <string name="player_time_init">00:00</string>
+
+    <string name="button_description_tiny_window">TinyWindow</string>
+    <string name="button_description_playlist_add">PlaylistAdd</string>
+    <string name="button_description_menu_more">MenuMore</string>
+    <string name="button_description_skip_previous">SkipPrevious</string>
+    <string name="button_description_fast_rewind">FastRewind</string>
+    <string name="button_description_play_arrow">Play</string>
+    <string name="button_description_pause">Pause</string>
+    <string name="button_description_fast_forward">FastForward</string>
+    <string name="button_description_skip_next">SkipNext</string>
+    <string name="button_description_fullscreen">FullScreen</string>
+
+</resources>

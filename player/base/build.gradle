@@ -1,0 +1,44 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    api 'androidx.annotation:annotation:1.1.0'
+
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
+    compileOnly 'org.checkerframework:checker-qual:2.5.5'
+    compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'
+}
+
+ext {
+    releaseArtifact = 'oneplayer-base'
+    releaseDescription = 'The OnePlayer library base module.'
+}
+apply from: '../../publish.gradle'

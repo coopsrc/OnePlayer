@@ -1,0 +1,13 @@
+apply plugin: 'bintray-release'
+
+publish {
+    artifactId = releaseArtifact
+    desc = releaseDescription
+    publishVersion = versionName
+    repoName = "OnePlayer"
+    userOrg = 'coopsrc'
+    groupId = 'com.coopsrc.oneplayer'
+    website = 'https://github.com/coopsrc/OnePlayer'
+    bintrayUser = System.getenv('BINTRAY_USER')
+    bintrayKey = System.getenv('BINTRAY_KEY')
+}

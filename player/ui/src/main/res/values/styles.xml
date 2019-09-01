@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MediaButton">
+        <item name="android:background">@drawable/action_button_ripple</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="MediaButton.TinyWindow">
+        <item name="android:src">@drawable/ic_expand_more_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_tiny_window</item>
+    </style>
+
+    <style name="MediaButton.PlaylistAdd">
+        <item name="android:src">@drawable/ic_playlist_add_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_playlist_add</item>
+    </style>
+
+    <style name="MediaButton.MenuMore">
+        <item name="android:src">@drawable/ic_more_vert_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_menu_more</item>
+    </style>
+
+    <style name="MediaButton.SkipPrevious">
+        <item name="android:src">@drawable/ic_skip_previous_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_skip_previous</item>
+    </style>
+
+    <style name="MediaButton.FastRewind">
+        <item name="android:src">@drawable/ic_fast_rewind_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_fast_rewind</item>
+    </style>
+
+    <style name="MediaButton.Play">
+        <item name="android:src">@drawable/ic_play_arrow_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_play_arrow</item>
+    </style>
+
+    <style name="MediaButton.Pause">
+        <item name="android:src">@drawable/ic_pause_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_pause</item>
+    </style>
+
+    <style name="MediaButton.FastForward">
+        <item name="android:src">@drawable/ic_fast_forward_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_fast_forward</item>
+    </style>
+
+    <style name="MediaButton.SkipNext">
+        <item name="android:src">@drawable/ic_skip_next_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_skip_next</item>
+    </style>
+
+    <style name="MediaButton.FullScreen">
+        <item name="android:src">@drawable/ic_fullscreen_white_24dp</item>
+        <item name="android:contentDescription">@string/button_description_fullscreen</item>
+    </style>
+
+    <style name="MediaTime">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:text">@string/player_time_init</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">#EEEEEE</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+</resources>

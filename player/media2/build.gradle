@@ -1,0 +1,45 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+//        versionName rootProject.ext.versionName
+        versionName "1.0.0-rc02"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    api project(':player-base')
+
+    implementation "androidx.media2:media2-common:1.0.0-rc02"
+    implementation "androidx.media2:media2-player:1.0.0-rc02"
+    implementation "androidx.media2:media2-session:1.0.0-rc02"
+}
+
+ext {
+    releaseArtifact = 'oneplayer-media2'
+    releaseDescription = 'The OnePlayer library MediaPlayer2 kernel module.'
+    versionName = "1.0.0-rc02"
+}
+apply from: '../../publish.gradle'
