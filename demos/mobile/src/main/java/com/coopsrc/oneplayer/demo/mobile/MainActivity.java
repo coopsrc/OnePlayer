@@ -1,7 +1,5 @@
 package com.coopsrc.oneplayer.demo.mobile;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -9,7 +7,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.WindowManager;
 
-import androidx.appcompat.app.ActionBar;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.coopsrc.oneplayer.PlayerFactory;
@@ -18,7 +16,6 @@ import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
-import com.coopsrc.oneplayer.core.utils.PlayerUtils;
 import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.PlayerView;
 
@@ -78,11 +75,11 @@ public class MainActivity extends AppCompatActivity {
 
         mPlayerView = findViewById(R.id.player_view);
 
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia2);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
-//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
 
         mPlayer.setScreenOnWhilePlaying(true);
         mPlayer.addEventListener(new OnePlayer.EventListener() {
@@ -132,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onVideoSizeChanged(OnePlayer player, int width, int height) {
+            public void onVideoSizeChanged(OnePlayer player, int width, int height, int rotationDegrees, float pixelRatio) {
                 PlayerLogger.i(TAG, "onVideoSizeChanged: ");
             }
 
@@ -146,7 +143,9 @@ public class MainActivity extends AppCompatActivity {
         mPlayerView.setPlaybackPreparer(new PlaybackPreparer() {
             @Override
             public void preparePlayback() {
-                mPlayer.prepareAsync();
+                if (mPlayer.getPlaybackState()== OnePlayer.STATE_IDLE){
+                    mPlayer.prepareAsync();
+                }
             }
         });
     }
@@ -155,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         try {
-            mPlayer.setDataSource(URL);
+//            mPlayer.setDataSource(URL);
 
 //            mPlayer.setDataSource(this, Uri.parse(videoLocal));
 
@@ -164,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
             // dash h264 mp4
 //            mPlayer.setDataSource(DASH_HD);
+//            mPlayer.setDataSource(DASH_SD_HD);
 
             // ss
 //            mPlayer.setDataSource(SS);
@@ -174,15 +174,16 @@ public class MainActivity extends AppCompatActivity {
 
             // hls live
 //            mPlayer.setDataSource(HLS_LIVE_hbws_bq);
-//            mPlayer.setDataSource(HLS_FAST_8);
+            mPlayer.setDataSource(HLS_FAST_8);
 
             // 360
 //            mPlayer.setDataSource(_360_congo);
 
             // dash h264 mp4 drm
-//                headersMap.put("contentId", "");
-//                headersMap.put("provider", "widevine_test");
-//                mPlayer.setVideoURI(Uri.parse(DASH_SECURE_SD), headersMap);
+//            headersMap.put("contentId", "");
+//            headersMap.put("provider", "widevine_test");
+//            headersMap.put("extension", "mpd");
+//            mPlayer.setDataSource(DASH_SECURE_SD, headersMap);
 
 
 //            headersMap.put("extension", "mpd");
@@ -223,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Log.i(TAG, "onConfigurationChanged: " + newConfig.orientation);
 

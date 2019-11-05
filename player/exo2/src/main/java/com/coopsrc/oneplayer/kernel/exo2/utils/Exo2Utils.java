@@ -18,6 +18,7 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
+import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
@@ -34,6 +35,11 @@ public class Exo2Utils {
     private static Cache downloadCache;
     private static File downloadDirectory;
     private static final String DOWNLOAD_CONTENT_DIRECTORY = "downloads";
+
+    public static final String MIME_TYPE_DASH = MimeTypes.APPLICATION_MPD;
+    public static final String MIME_TYPE_HLS = MimeTypes.APPLICATION_M3U8;
+    public static final String MIME_TYPE_SS = MimeTypes.APPLICATION_SS;
+    public static final String MIME_TYPE_VIDEO_MP4 = MimeTypes.VIDEO_MP4;
 
     public RenderersFactory buildRenderersFactory(Context context, boolean preferExtensionRenderer) {
         @DefaultRenderersFactory.ExtensionRendererMode

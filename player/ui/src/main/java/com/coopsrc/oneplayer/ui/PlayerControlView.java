@@ -22,7 +22,6 @@ import com.coopsrc.oneplayer.core.DefaultControlDispatcher;
 import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
-import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;

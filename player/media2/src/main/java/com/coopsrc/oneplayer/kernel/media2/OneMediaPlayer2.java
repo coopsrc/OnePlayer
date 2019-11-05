@@ -2,12 +2,15 @@ package com.coopsrc.oneplayer.kernel.media2;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.media2.common.FileMediaItem;
 import androidx.media2.common.MediaItem;
 import androidx.media2.common.SubtitleData;
+import androidx.media2.common.UriMediaItem;
 import androidx.media2.player.MediaPlayer2;
 import androidx.media2.player.MediaPlayer2.DrmEventCallback;
 import androidx.media2.player.MediaPlayer2.EventCallback;
@@ -15,10 +18,11 @@ import androidx.media2.player.MediaTimestamp;
 import androidx.media2.player.TimedMetaData;
 
 import com.coopsrc.oneplayer.core.AbsOnePlayer;
-import com.coopsrc.oneplayer.core.OneExecutors;
 import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
+import com.coopsrc.oneplayer.core.misc.OneTimedMetadata;
+import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -55,7 +59,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     protected PlayerListenerWrapper getInternalListener() {
-        return null;
+        return mInternalAdapterListener;
     }
 
     @Override
@@ -65,8 +69,8 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     protected void attachInternalListeners() {
-        mInternalPlayer.setEventCallback(OneExecutors.getInstance().diskIO(), mInternalAdapterListener.getEventCallback());
-        mInternalPlayer.setDrmEventCallback(OneExecutors.getInstance().diskIO(), mInternalAdapterListener.getDrmEventCallback());
+        mInternalPlayer.setEventCallback(getIOThreadExecutor(), mInternalAdapterListener.getEventCallback());
+        mInternalPlayer.setDrmEventCallback(getIOThreadExecutor(), mInternalAdapterListener.getDrmEventCallback());
     }
 
     @Override
@@ -83,32 +87,52 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        UriMediaItem.Builder mediaItemBuilder = new UriMediaItem.Builder(uri);
 
+        MediaItem mediaItem = mediaItemBuilder.build();
+        mInternalPlayer.setMediaItem(mediaItem);
     }
 
     @Override
     public void setDataSource(Context context, Uri uri, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        UriMediaItem.Builder mediaItemBuilder = new UriMediaItem.Builder(uri, headers, null);
 
+        MediaItem mediaItem = mediaItemBuilder.build();
+        mInternalPlayer.setMediaItem(mediaItem);
     }
 
     @Override
     public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        UriMediaItem.Builder mediaItemBuilder = new UriMediaItem.Builder(Uri.parse(path));
 
+        MediaItem mediaItem = mediaItemBuilder.build();
+        mInternalPlayer.setMediaItem(mediaItem);
     }
 
     @Override
     public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
 
+        UriMediaItem.Builder mediaItemBuilder = new UriMediaItem.Builder(Uri.parse(path), headers, null);
+
+        MediaItem mediaItem = mediaItemBuilder.build();
+
+        mInternalPlayer.setMediaItem(mediaItem);
     }
 
     @Override
     public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
-
+        FileMediaItem.Builder mediaItemBuilder = new FileMediaItem.Builder(ParcelFileDescriptor.dup(fd));
+        MediaItem mediaItem = mediaItemBuilder.build();
+        mInternalPlayer.setMediaItem(mediaItem);
     }
 
     @Override
     public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
+        FileMediaItem.Builder mediaItemBuilder = new FileMediaItem.Builder(ParcelFileDescriptor.dup(fd));
 
+        mediaItemBuilder.setStartPosition(offset);
+        MediaItem mediaItem = mediaItemBuilder.build();
+        mInternalPlayer.setMediaItem(mediaItem);
     }
 
     @Override
@@ -149,7 +173,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
         if (mInternalPlayer != null) {
             mInternalPlayer.close();
         }
-        return false;
+        return super.release();
     }
 
     @Override
@@ -173,6 +197,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     public void setVolume(float audioVolume) {
+        super.setVolume(audioVolume);
         mInternalPlayer.setPlayerVolume(audioVolume);
     }
 
@@ -186,7 +211,6 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
     @Override
     public long getDuration() {
-
         if (mInternalPlayer != null && isPlaying()) {
             return mInternalPlayer.getDuration();
         }
@@ -267,48 +291,71 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
 
         private class OneEventCallback extends EventCallback {
             @Override
-            public void onVideoSizeChanged(MediaPlayer2 mp, MediaItem item, int width, int height) {
-                super.onVideoSizeChanged(mp, item, width, height);
+            public void onVideoSizeChanged(MediaPlayer2 mediaPlayer2, MediaItem item, int width, int height) {
+                super.onVideoSizeChanged(mediaPlayer2, item, width, height);
+                PlayerLogger.i(TAG, "onVideoSizeChanged: [%s, %s]", width, height);
+                notifyOnVideoSizeChanged(width, height);
             }
 
             @Override
-            public void onTimedMetaDataAvailable(MediaPlayer2 mp, MediaItem item, TimedMetaData data) {
-                super.onTimedMetaDataAvailable(mp, item, data);
+            public void onTimedMetaDataAvailable(MediaPlayer2 mediaPlayer2, MediaItem item, TimedMetaData data) {
+                super.onTimedMetaDataAvailable(mediaPlayer2, item, data);
+                PlayerLogger.i(TAG, "onTimedMetaDataAvailable: ");
+                notifyOnTimedMetadata(new OneTimedMetadata(data.getTimestamp(), data.getMetaData()));
             }
 
             @Override
-            public void onError(MediaPlayer2 mp, MediaItem item, int what, int extra) {
-                super.onError(mp, item, what, extra);
+            public void onError(MediaPlayer2 mediaPlayer2, MediaItem item, int what, int extra) {
+                super.onError(mediaPlayer2, item, what, extra);
+                PlayerLogger.i(TAG, "onError: [%s, %s]", what, extra);
+                notifyOnError(what, extra);
             }
 
             @Override
-            public void onInfo(MediaPlayer2 mp, MediaItem item, int what, int extra) {
-                super.onInfo(mp, item, what, extra);
+            public void onInfo(MediaPlayer2 mediaPlayer2, MediaItem item, int what, int extra) {
+                super.onInfo(mediaPlayer2, item, what, extra);
+                PlayerLogger.i(TAG, "onInfo: [%s, %s]", what, extra);
+                notifyOnInfo(what, extra);
             }
 
             @Override
-            public void onCallCompleted(MediaPlayer2 mp, MediaItem item, int what, int status) {
-                super.onCallCompleted(mp, item, what, status);
+            public void onCallCompleted(MediaPlayer2 mediaPlayer2, MediaItem item, int what, int status) {
+                super.onCallCompleted(mediaPlayer2, item, what, status);
+                PlayerLogger.i(TAG, "onCallCompleted: [%s, %s]", what, status);
+                notifyOnCompletion();
             }
 
             @Override
-            public void onMediaTimeDiscontinuity(MediaPlayer2 mp, MediaItem item, MediaTimestamp timestamp) {
-                super.onMediaTimeDiscontinuity(mp, item, timestamp);
+            public void onMediaTimeDiscontinuity(MediaPlayer2 mediaPlayer2, MediaItem item, MediaTimestamp timestamp) {
+                super.onMediaTimeDiscontinuity(mediaPlayer2, item, timestamp);
+                PlayerLogger.i(TAG, "onMediaTimeDiscontinuity: ");
             }
 
             @Override
-            public void onCommandLabelReached(MediaPlayer2 mp, @NonNull Object label) {
-                super.onCommandLabelReached(mp, label);
+            public void onCommandLabelReached(MediaPlayer2 mediaPlayer2, @NonNull Object label) {
+                super.onCommandLabelReached(mediaPlayer2, label);
+                PlayerLogger.i(TAG, "onCommandLabelReached: ");
             }
 
             @Override
-            public void onSubtitleData(@NonNull MediaPlayer2 mp, @NonNull MediaItem item, int trackIdx, @NonNull SubtitleData data) {
-                super.onSubtitleData(mp, item, trackIdx, data);
+            public void onSubtitleData(@NonNull MediaPlayer2 mediaPlayer2, @NonNull MediaItem item, int trackIdx, @NonNull SubtitleData data) {
+                super.onSubtitleData(mediaPlayer2, item, trackIdx, data);
+                PlayerLogger.i(TAG, "onSubtitleData: ");
             }
         }
 
         private class OneDrmEventCallback extends DrmEventCallback {
+            @Override
+            public void onDrmInfo(MediaPlayer2 mediaPlayer2, MediaItem item, MediaPlayer2.DrmInfo drmInfo) {
+                super.onDrmInfo(mediaPlayer2, item, drmInfo);
+                PlayerLogger.i(TAG, "onDrmInfo: ");
+            }
 
+            @Override
+            public void onDrmPrepared(MediaPlayer2 mediaPlayer2, MediaItem item, int status) {
+                super.onDrmPrepared(mediaPlayer2, item, status);
+                PlayerLogger.i(TAG, "onDrmPrepared: [%s]", status);
+            }
         }
     }
 

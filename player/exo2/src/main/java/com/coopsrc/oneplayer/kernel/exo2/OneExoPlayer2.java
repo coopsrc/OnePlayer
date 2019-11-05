@@ -64,9 +64,6 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
     private MediaSource mMediaSource;
 
-    private int mVideoWidth;
-    private int mVideoHeight;
-
     public OneExoPlayer2(Context context) {
         super(context);
 
@@ -87,10 +84,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
     @Override
     protected void initializePlayer() {
-
-
         dataSourceFactory = Exo2Utils.buildDataSourceFactory(getContext());
-
         mInternalPlayer = ExoPlayerFactory.newSimpleInstance(getContext());
     }
 
@@ -173,13 +167,13 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         PlayerLogger.i(TAG, "setDataSource: %s", uri);
-        setDataSource(context, uri, null);
+
+        mMediaSource = buildMediaSource(uri);
     }
 
     @Override
     public void setDataSource(Context context, Uri uri, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
-
-        PlayerLogger.i(TAG, "setDataSource: %s", uri);
+        PlayerLogger.i(TAG, "setDataSource: %s, %s", uri, headers);
 
         if (headers != null) {
             mMediaSource = buildMediaSource(uri, headers.get("extension"));
@@ -190,79 +184,102 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
     @Override
     public void setDataSource(String path) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
-
         PlayerLogger.i(TAG, "setDataSource: %s", path);
 
-        setDataSource(getContext(), Uri.parse(path));
+        mMediaSource = buildMediaSource(Uri.parse(path));
     }
 
     @Override
     public void setDataSource(String path, Map<String, String> headers) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         PlayerLogger.i(TAG, "setDataSource: %s, %s", path, headers);
 
-        setDataSource(getContext(), Uri.parse(path), headers);
+        if (headers != null) {
+            mMediaSource = buildMediaSource(Uri.parse(path), headers.get("extension"));
+        } else {
+            mMediaSource = buildMediaSource(Uri.parse(path));
+        }
+    }
+
+
+    @Override
+    public void setDataSource(FileDescriptor fileDescriptor) throws IOException, IllegalArgumentException, IllegalStateException {
+
     }
 
     @Override
-    public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
-
-    }
-
-    @Override
-    public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
+    public void setDataSource(FileDescriptor fileDescriptor, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
 
     }
 
     @Override
     public void setDataSource(IMediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
+
     }
 
     @Override
     public void prepareAsync() throws IllegalStateException {
         PlayerLogger.i(TAG, "prepareAsync: %s", mMediaSource);
-        mInternalPlayer.prepare(mMediaSource);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.prepare(mMediaSource);
+        }
     }
 
     @Override
     public void start() throws IllegalStateException {
-        mInternalPlayer.setPlayWhenReady(true);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.setPlayWhenReady(true);
+        }
     }
 
     @Override
     public void stop() throws IllegalStateException {
-        mInternalPlayer.stop();
+        if (mInternalPlayer != null) {
+            mInternalPlayer.stop();
+        }
     }
 
     @Override
     public void pause() throws IllegalStateException {
-        mInternalPlayer.setPlayWhenReady(true);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.setPlayWhenReady(true);
+        }
     }
 
     @Override
     public boolean release() {
-        mInternalPlayer.release();
-        return true;
+        if (mInternalPlayer != null) {
+            mInternalPlayer.release();
+        }
+        return super.release();
     }
 
     @Override
     public void reset() {
-        mInternalPlayer.stop(true);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.stop(true);
+        }
     }
 
     @Override
     public void seekTo(long positionMs, int mode) {
-        mInternalPlayer.seekTo(positionMs);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.seekTo(positionMs);
+        }
     }
 
     @Override
     public void seekTo(long positionMs) throws IllegalStateException {
-        mInternalPlayer.seekTo(positionMs);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.seekTo(positionMs);
+        }
     }
 
     @Override
     public void setVolume(float audioVolume) {
-        mInternalPlayer.setVolume(audioVolume);
         super.setVolume(audioVolume);
+        if (mInternalPlayer != null) {
+            mInternalPlayer.setVolume(audioVolume);
+        }
     }
 
     @Override
@@ -319,12 +336,38 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
 
     @Override
     public int getVideoWidth() {
-        return mVideoWidth;
+        if (mInternalPlayer != null && mInternalPlayer.getVideoFormat() != null) {
+            return mInternalPlayer.getVideoFormat().width;
+        }
+
+        return super.getVideoWidth();
     }
 
     @Override
     public int getVideoHeight() {
-        return mVideoHeight;
+        if (mInternalPlayer != null && mInternalPlayer.getVideoFormat() != null) {
+            return mInternalPlayer.getVideoFormat().height;
+        }
+
+        return super.getVideoHeight();
+    }
+
+    @Override
+    public int getRotationDegrees() {
+        if (mInternalPlayer != null && mInternalPlayer.getVideoFormat() != null) {
+            return mInternalPlayer.getVideoFormat().rotationDegrees;
+        }
+
+        return super.getRotationDegrees();
+    }
+
+    @Override
+    public float getPixelRatio() {
+        if (mInternalPlayer != null && mInternalPlayer.getVideoFormat() != null) {
+            return mInternalPlayer.getVideoFormat().pixelWidthHeightRatio;
+        }
+
+        return super.getPixelRatio();
     }
 
     @Override
@@ -377,7 +420,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     private class InternalAdapterListener extends PlayerListenerWrapper<OneExoPlayer2> implements
             Player.EventListener, AudioListener, VideoListener, TextOutput, MetadataOutput {
 
-        public InternalAdapterListener(OneExoPlayer2 player) {
+        InternalAdapterListener(OneExoPlayer2 player) {
             super(player);
         }
 
@@ -400,6 +443,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             PlayerLogger.i(TAG, "onPlayerStateChanged: [%s,%s]", playWhenReady, playbackState);
+            notifyOnPlaybackStateChanged(playWhenReady, playbackState);
         }
 
         @Override
@@ -415,6 +459,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         @Override
         public void onPlayerError(ExoPlaybackException error) {
             PlayerLogger.i(TAG, "onPlayerError: %s", error);
+            notifyOnError(error.type, error.rendererIndex);
         }
 
         @Override
@@ -430,6 +475,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         @Override
         public void onSeekProcessed() {
             PlayerLogger.i(TAG, "onSeekProcessed: ");
+            notifyOnSeekComplete();
         }
 
         @Override
@@ -445,24 +491,24 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         @Override
         public void onAudioSessionId(int audioSessionId) {
             PlayerLogger.i(TAG, "onAudioSessionId: %s", audioSessionId);
+            notifyOnAudioSessionId(audioSessionId);
         }
 
         @Override
         public void onAudioAttributesChanged(AudioAttributes audioAttributes) {
             PlayerLogger.i(TAG, "onAudioAttributesChanged: %s", audioAttributes);
+            notifyOnAudioAttributesChanged(audioAttributes.getAudioAttributesV21());
         }
 
         @Override
         public void onVolumeChanged(float volume) {
             PlayerLogger.i(TAG, "onVolumeChanged: %s", volume);
+            notifyOnVolumeChanged(volume);
         }
 
         @Override
         public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
             PlayerLogger.i(TAG, "onVideoSizeChanged: [%s,%s][%s,%s]", width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
-            mVideoWidth = width;
-            mVideoHeight = height;
-            notifyOnVideoSizeChanged(width, height);
             notifyOnVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
         }
 

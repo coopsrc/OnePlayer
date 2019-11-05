@@ -51,6 +51,20 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         attachInternalListeners();
     }
 
+    @Override
+    public MediaPlayer getInternalPlayer() {
+        return mInternalPlayer;
+    }
+
+    @Override
+    protected PlayerListenerWrapper getInternalListener() {
+        return mInternalAdapterListener;
+    }
+
+    @Override
+    protected void initializePlayer() {
+
+    }
 
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, IllegalStateException, SecurityException {
@@ -94,7 +108,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
-        PlayerLogger.i(TAG, "setDataSource: [%s, %s/%s]", fd, offset, length);
+        PlayerLogger.i(TAG, "setDataSource: [%s, %s, %s]", fd, offset, length);
         if (mInternalPlayer != null) {
             mInternalPlayer.setDataSource(fd, offset, length);
         }
@@ -253,7 +267,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         if (mInternalPlayer != null) {
             return mInternalPlayer.getVideoWidth();
         }
-        return 0;
+        return super.getVideoWidth();
     }
 
     @Override
@@ -261,7 +275,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         if (mInternalPlayer != null) {
             return mInternalPlayer.getVideoHeight();
         }
-        return 0;
+        return super.getVideoHeight();
     }
 
     @Override
@@ -294,21 +308,6 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     @Override
     public int getAudioSessionId() {
         return mInternalPlayer.getAudioSessionId();
-    }
-
-    @Override
-    public MediaPlayer getInternalPlayer() {
-        return mInternalPlayer;
-    }
-
-    @Override
-    protected PlayerListenerWrapper getInternalListener() {
-        return mInternalAdapterListener;
-    }
-
-    @Override
-    protected void initializePlayer() {
-
     }
 
     @Override

@@ -89,6 +89,13 @@ interface IPlayerInfo {
     public static final int SEEK_PREVIOUS_SYNC = 0;
 
 
+    public static final int ROTATION_0 = 0;
+    public static final int ROTATION_90 = 90;
+    public static final int ROTATION_180 = 180;
+    public static final int ROTATION_270 = 270;
+    public static final float PIXEL_RATIO_1 = 1.0f;
+
+
     /**
      * Reasons for timeline and/or manifest changes. One of {@link #TIMELINE_CHANGE_REASON_PREPARED},
      * {@link #TIMELINE_CHANGE_REASON_RESET} or {@link #TIMELINE_CHANGE_REASON_DYNAMIC}.

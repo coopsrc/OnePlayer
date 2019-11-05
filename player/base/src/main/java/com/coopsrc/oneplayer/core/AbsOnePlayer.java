@@ -3,29 +3,26 @@ package com.coopsrc.oneplayer.core;
 import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.media.AudioAttributes;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
 import androidx.annotation.Nullable;
+import androidx.arch.core.executor.ArchTaskExecutor;
 
-import com.coopsrc.oneplayer.core.audio.AudioListener;
 import com.coopsrc.oneplayer.core.invoke.ListenerHolder;
 import com.coopsrc.oneplayer.core.invoke.ListenerInvocation;
-import com.coopsrc.oneplayer.core.metadata.MetadataOutput;
 import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
-import com.coopsrc.oneplayer.core.text.TextOutput;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
-import com.coopsrc.oneplayer.core.utils.PlayerUtils;
-import com.coopsrc.oneplayer.core.video.VideoListener;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executor;
 
 /**
  * @author tingkuo
@@ -37,11 +34,6 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     private final ArrayDeque<Runnable> mPendingListenerNotifications;
     private final CopyOnWriteArrayList<ListenerHolder<EventListener>> mEventListenerHolders;
 
-    private final CopyOnWriteArraySet<AudioListener> mAudioListeners;
-    private final CopyOnWriteArraySet<VideoListener> mVideoListeners;
-    private final CopyOnWriteArraySet<TextOutput> mTextOutputs;
-    private final CopyOnWriteArraySet<MetadataOutput> mMetadataOutputs;
-
     private final Context mContext;
 
     private int mBufferedPercentage;
@@ -50,6 +42,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Nullable
     private Surface surface;
+    private boolean ownsSurface;
     @Nullable
     private SurfaceHolder surfaceHolder;
     @Nullable
@@ -57,16 +50,25 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     private int surfaceWidth;
     private int surfaceHeight;
 
+    private int videoWidth;
+    private int videoHeight;
+    private int rotationDegrees;
+    private float pixelRatio;
+
     public AbsOnePlayer(Context context) {
         mContext = context;
 
         mEventListenerHolders = new CopyOnWriteArrayList<>();
         mPendingListenerNotifications = new ArrayDeque<>();
 
-        mAudioListeners = new CopyOnWriteArraySet<>();
-        mVideoListeners = new CopyOnWriteArraySet<>();
-        mTextOutputs = new CopyOnWriteArraySet<>();
-        mMetadataOutputs = new CopyOnWriteArraySet<>();
+        printDebugInfo();
+    }
+
+    private void printDebugInfo() {
+        String hexString = Integer.toHexString(System.identityHashCode(this));
+        String deviceInfo = Constants.DEVICE_DEBUG_INFO;
+        String libVersion = PlayerLibraryInfo.VERSION_SLASHY;
+        PlayerLogger.i(TAG, "Init %s [%s] [%s]", hexString, libVersion, deviceInfo);
     }
 
     public Context getContext() {
@@ -101,40 +103,30 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     protected abstract void setSurface(@Nullable Surface surface);
 
     @Override
-    public void setVolume(float audioVolume) {
-        audioVolume = PlayerUtils.constrainValue(audioVolume, 0, 1);
-        if (this.audioVolume == audioVolume) {
-            return;
+    public boolean release() {
+        removeSurfaceCallbacks();
+        if (surface != null) {
+            if (ownsSurface) {
+                surface.release();
+            }
+            surface = null;
         }
-        this.audioVolume = audioVolume;
-        for (AudioListener audioListener : mAudioListeners) {
-            audioListener.onVolumeChanged(audioVolume);
+
+        return true;
+    }
+
+    @Override
+    public void setVolume(float audioVolume) {
+        if (this.audioVolume != audioVolume) {
+            this.audioVolume = audioVolume;
+
+            notifyOnVolumeChanged(audioVolume);
         }
     }
 
     @Override
     public float getVolume() {
         return audioVolume;
-    }
-
-    @Override
-    public void addAudioListener(AudioListener audioListener) {
-        mAudioListeners.add(audioListener);
-    }
-
-    @Override
-    public void removeAudioListener(AudioListener audioListener) {
-        mAudioListeners.remove(audioListener);
-    }
-
-    @Override
-    public void addVideoListener(VideoListener videoListener) {
-        mVideoListeners.add(videoListener);
-    }
-
-    @Override
-    public void removeVideoListener(VideoListener videoListener) {
-        mVideoListeners.add(videoListener);
     }
 
     @Override
@@ -159,7 +151,6 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public void setVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
-
         removeSurfaceCallbacks();
         this.surfaceHolder = surfaceHolder;
         if (surfaceHolder == null) {
@@ -181,7 +172,6 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public void clearVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
-
         if (surfaceHolder != null && surfaceHolder == this.surfaceHolder) {
             setVideoSurfaceHolder(null);
         }
@@ -189,13 +179,11 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public void setVideoSurfaceView(SurfaceView surfaceView) {
-
         setVideoSurfaceHolder(surfaceView == null ? null : surfaceView.getHolder());
     }
 
     @Override
     public void clearVideoSurfaceView(SurfaceView surfaceView) {
-
         clearVideoSurfaceHolder(surfaceView == null ? null : surfaceView.getHolder());
     }
 
@@ -224,30 +212,9 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public void clearVideoTextureView(TextureView textureView) {
-
         if (textureView != null && textureView == this.textureView) {
             setVideoTextureView(null);
         }
-    }
-
-    @Override
-    public void addTextOutput(TextOutput textOutput) {
-        mTextOutputs.add(textOutput);
-    }
-
-    @Override
-    public void removeTextOutput(TextOutput textOutput) {
-        mTextOutputs.remove(textOutput);
-    }
-
-    @Override
-    public void addMetadataOutput(MetadataOutput metadataOutput) {
-        mMetadataOutputs.add(metadataOutput);
-    }
-
-    @Override
-    public void removeMetadataOutput(MetadataOutput metadataOutput) {
-        mMetadataOutputs.remove(metadataOutput);
     }
 
     @Override
@@ -262,7 +229,27 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public int getCurrentPercentage() {
-        return (int) (getCurrentPosition() / getDuration());
+        return Long.valueOf(getCurrentPosition() / getDuration()).intValue();
+    }
+
+    @Override
+    public int getVideoWidth() {
+        return videoWidth;
+    }
+
+    @Override
+    public int getVideoHeight() {
+        return videoHeight;
+    }
+
+    @Override
+    public int getRotationDegrees() {
+        return rotationDegrees;
+    }
+
+    @Override
+    public float getPixelRatio() {
+        return pixelRatio;
     }
 
     private void removeSurfaceCallbacks() {
@@ -277,12 +264,30 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     private void setVideoSurfaceInternal(@Nullable Surface surface, boolean ownsSurface) {
+
+        if (this.surface != null && this.surface != surface) {
+            if (this.ownsSurface) {
+                this.surface.release();
+            }
+        }
+
+        this.surface = surface;
+        this.ownsSurface = ownsSurface;
+
         setSurface(surface);
     }
 
     @Override
     public int getPlaybackState() {
         return OnePlayer.STATE_IDLE;
+    }
+
+    protected Executor getIOThreadExecutor() {
+        return ArchTaskExecutor.getIOThreadExecutor();
+    }
+
+    protected Executor getMainThreadExecutor() {
+        return ArchTaskExecutor.getMainThreadExecutor();
     }
 
     /*
@@ -372,12 +377,80 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         });
     }
 
-    protected final void notifyOnVideoSizeChanged(final int width, final int height) {
+    protected final void notifyOnPlaybackStateChanged(boolean playWhenReady, int playbackState) {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onPlaybackStateChanged(playWhenReady, playbackState);
+            }
+        });
+    }
+
+    /*
+     * notify AudioListener
+     */
+    protected final void notifyOnAudioSessionId(int audioSessionId) {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onAudioSessionId(AbsOnePlayer.this, audioSessionId);
+            }
+        });
+    }
+
+    protected final void notifyOnAudioAttributesChanged(AudioAttributes audioAttributes) {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onAudioAttributesChanged(AbsOnePlayer.this, audioAttributes);
+            }
+        });
+    }
+
+    protected final void notifyOnVolumeChanged(float audioVolume) {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onVolumeChanged(AbsOnePlayer.this, audioVolume);
+            }
+        });
+    }
+
+    /*
+     * notify VideoListener
+     */
+    protected final void notifyOnVideoSizeChanged(int width, int height, int rotationDegrees, float pixelRatio) {
+        this.videoWidth = width;
+        this.videoHeight = height;
+        this.rotationDegrees = rotationDegrees;
+        this.pixelRatio = pixelRatio;
 
         notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
-                listener.onVideoSizeChanged(AbsOnePlayer.this, width, height);
+                listener.onVideoSizeChanged(AbsOnePlayer.this, width, height, rotationDegrees, pixelRatio);
+            }
+        });
+    }
+
+    protected final void notifyOnVideoSizeChanged(final int width, final int height) {
+        notifyOnVideoSizeChanged(width, height, ROTATION_0, PIXEL_RATIO_1);
+    }
+
+    protected final void notifyOnSurfaceSizeChanged(int width, int height) {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onSurfaceSizeChanged(AbsOnePlayer.this, width, height);
+            }
+        });
+    }
+
+    protected final void notifyOnRenderedFirstFrame() {
+        notifyEventListeners(new ListenerInvocation<EventListener>() {
+            @Override
+            public void invokeListener(EventListener listener) {
+                listener.onRenderedFirstFrame(AbsOnePlayer.this);
             }
         });
     }
@@ -385,52 +458,6 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     private void notifyEventListeners(final ListenerInvocation<EventListener> listenerInvocation) {
         notifyListeners(mEventListenerHolders, listenerInvocation);
     }
-
-    /*
-     * notify AudioListener
-     */
-    protected final void notifyOnAudioSessionId(int audioSessionId) {
-        for (AudioListener audioListener : mAudioListeners) {
-            audioListener.onAudioSessionId(audioSessionId);
-        }
-    }
-
-    protected final void notifyOnVolumeChanged(float audioVolume) {
-        for (AudioListener audioListener : mAudioListeners) {
-            audioListener.onVolumeChanged(audioVolume);
-        }
-    }
-
-    /*
-     * notify VideoListener
-     */
-    protected final void notifyOnVideoSizeChanged(int width, int height, int rotationDegrees, float pixelRatio) {
-        for (VideoListener videoListener : mVideoListeners) {
-            videoListener.onVideoSizeChanged(width, height, rotationDegrees, pixelRatio);
-        }
-    }
-
-    protected final void notifyOnSurfaceSizeChanged(int width, int height) {
-        for (VideoListener videoListener : mVideoListeners) {
-            videoListener.onSurfaceSizeChanged(width, height);
-        }
-    }
-
-    protected final void notifyOnRenderedFirstFrame() {
-        for (VideoListener videoListener : mVideoListeners) {
-            videoListener.onRenderedFirstFrame();
-        }
-    }
-
-    /*
-     * notify TextOutput
-     */
-    // TODO: 19-8-8 notify TextOutput
-
-    /*
-     * notify MetadataOutput
-     */
-    // TODO: 19-8-8 notify MetadataOutput
 
     private <T> void notifyListeners(CopyOnWriteArrayList<ListenerHolder<T>> listenerHolders, final ListenerInvocation<T> listenerInvocation) {
         final CopyOnWriteArrayList<ListenerHolder<T>> listenerSnapshot = new CopyOnWriteArrayList<>(listenerHolders);
@@ -466,9 +493,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         if (width != surfaceWidth || height != surfaceHeight) {
             surfaceWidth = width;
             surfaceHeight = height;
-            for (VideoListener videoListener : mVideoListeners) {
-                videoListener.onSurfaceSizeChanged(width, height);
-            }
+            notifyOnSurfaceSizeChanged(width, height);
         }
     }
 
@@ -482,7 +507,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
             mPlayerReference = new WeakReference<>(player);
         }
 
-        protected T getPlayer() {
+        protected final T getPlayer() {
             return mPlayerReference.get();
         }
 

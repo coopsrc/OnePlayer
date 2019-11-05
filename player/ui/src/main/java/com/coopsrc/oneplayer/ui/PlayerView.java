@@ -60,7 +60,7 @@ public class PlayerView extends ConstraintLayout {
     public static final int SHOW_BUFFERING_NEVER = 0;
     /**
      * The buffering view is shown when the player is in the {@link OnePlayer#STATE_BUFFERING buffering}
-     * state and {@link OnePlayer#getPlayWhenReady() playWhenReady} is {@code true}.
+     * state and {@link OnePlayer#getPlaybackState()} } is {@code true}.
      */
     public static final int SHOW_BUFFERING_WHEN_PLAYING = 1;
     /**
@@ -68,13 +68,11 @@ public class PlayerView extends ConstraintLayout {
      * buffering} state.
      */
     public static final int SHOW_BUFFERING_ALWAYS = 2;
-    // LINT.ThenChange(../../../../../../res/values/attrs.xml)
 
     // LINT.IfChange
     private static final int SURFACE_TYPE_NONE = 0;
     private static final int SURFACE_TYPE_SURFACE_VIEW = 1;
     private static final int SURFACE_TYPE_TEXTURE_VIEW = 2;
-    // LINT.ThenChange(../../../../../../res/values/attrs.xml)
 
     @Nullable
     private final AspectRatioFrameLayout contentFrame;
@@ -259,7 +257,6 @@ public class PlayerView extends ConstraintLayout {
         }
         if (this.player != null) {
             this.player.removeEventListener(componentListener);
-            this.player.removeVideoListener(componentListener);
             if (surfaceView instanceof TextureView) {
                 this.player.clearVideoTextureView((TextureView) surfaceView);
             } else if (surfaceView instanceof SurfaceView) {
@@ -281,7 +278,6 @@ public class PlayerView extends ConstraintLayout {
                 player.setVideoSurfaceView((SurfaceView) surfaceView);
 
             }
-            player.addVideoListener(componentListener);
             player.addEventListener(componentListener);
             maybeShowController(false);
         } else {
@@ -770,17 +766,10 @@ public class PlayerView extends ConstraintLayout {
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER;
     }
 
-    private final class ComponentListener implements OnePlayer.EventListener,
-            VideoListener, OnLayoutChangeListener {
-
+    private final class ComponentListener implements OnePlayer.EventListener,  OnLayoutChangeListener {
 
         @Override
-        public void onVideoSizeChanged(OnePlayer player, int width, int height) {
-            PlayerLogger.i(TAG, "onVideoSizeChanged: [%s,%s]", width, height);
-        }
-
-        @Override
-        public void onVideoSizeChanged(int width, int height, int rotationDegrees, float ratio) {
+        public void onVideoSizeChanged(OnePlayer player, int width, int height, int rotationDegrees, float ratio) {
             PlayerLogger.i(TAG, "onVideoSizeChanged: [%s,%s],%s,%s", width, height, rotationDegrees, ratio);
             float videoAspectRatio = (height == 0 || width == 0) ? 1 : (width * ratio) / height;
 
@@ -807,15 +796,14 @@ public class PlayerView extends ConstraintLayout {
         }
 
         @Override
-        public void onSurfaceSizeChanged(int width, int height) {
+        public void onSurfaceSizeChanged(OnePlayer player, int width, int height) {
             PlayerLogger.i(TAG, "onSurfaceSizeChanged: [%s,%s]", width, height);
         }
 
         @Override
-        public void onRenderedFirstFrame() {
+        public void onRenderedFirstFrame(OnePlayer player) {
             PlayerLogger.i(TAG, "onRenderedFirstFrame: ");
         }
-
 
         @Override
         public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {

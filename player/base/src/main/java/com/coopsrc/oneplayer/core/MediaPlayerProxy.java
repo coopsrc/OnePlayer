@@ -12,10 +12,8 @@ import android.view.TextureView;
 import androidx.annotation.Nullable;
 
 import com.coopsrc.oneplayer.core.audio.AudioListener;
-import com.coopsrc.oneplayer.core.metadata.MetadataOutput;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
-import com.coopsrc.oneplayer.core.text.TextOutput;
 import com.coopsrc.oneplayer.core.video.VideoListener;
 
 import java.io.FileDescriptor;
@@ -47,16 +45,6 @@ public class MediaPlayerProxy implements OnePlayer {
     @Override
     public void removeEventListener(EventListener listener) {
         mBackendPlayer.removeEventListener(listener);
-    }
-
-    @Override
-    public void addVideoListener(VideoListener videoListener) {
-
-    }
-
-    @Override
-    public void removeVideoListener(VideoListener videoListener) {
-
     }
 
     @Override
@@ -236,6 +224,16 @@ public class MediaPlayerProxy implements OnePlayer {
     }
 
     @Override
+    public int getRotationDegrees() {
+        return mBackendPlayer.getRotationDegrees();
+    }
+
+    @Override
+    public float getPixelRatio() {
+        return mBackendPlayer.getPixelRatio();
+    }
+
+    @Override
     public void setLooping(boolean looping) {
         mBackendPlayer.setLooping(looping);
     }
@@ -250,15 +248,6 @@ public class MediaPlayerProxy implements OnePlayer {
         return mBackendPlayer.getTrackInfo();
     }
 
-    @Override
-    public void addAudioListener(AudioListener audioListener) {
-        mBackendPlayer.addAudioListener(audioListener);
-    }
-
-    @Override
-    public void removeAudioListener(AudioListener audioListener) {
-        mBackendPlayer.removeAudioListener(audioListener);
-    }
 
     @Override
     public void setAudioSessionId(int sessionId) {
@@ -280,23 +269,4 @@ public class MediaPlayerProxy implements OnePlayer {
         return mBackendPlayer.getPlaybackState();
     }
 
-    @Override
-    public void addTextOutput(TextOutput textOutput) {
-        mBackendPlayer.addTextOutput(textOutput);
-    }
-
-    @Override
-    public void removeTextOutput(TextOutput textOutput) {
-        mBackendPlayer.removeTextOutput(textOutput);
-    }
-
-    @Override
-    public void addMetadataOutput(MetadataOutput metadataOutput) {
-        mBackendPlayer.addMetadataOutput(metadataOutput);
-    }
-
-    @Override
-    public void removeMetadataOutput(MetadataOutput metadataOutput) {
-        mBackendPlayer.removeMetadataOutput(metadataOutput);
-    }
 }

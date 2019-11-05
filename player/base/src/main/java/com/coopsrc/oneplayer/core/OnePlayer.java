@@ -7,13 +7,20 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.coopsrc.oneplayer.core.audio.AudioComponent;
-import com.coopsrc.oneplayer.core.metadata.MetadataComponent;
+import com.coopsrc.oneplayer.core.audio.AudioListener;
+import com.coopsrc.oneplayer.core.playback.OnBufferingUpdateListener;
+import com.coopsrc.oneplayer.core.playback.OnCompletionListener;
+import com.coopsrc.oneplayer.core.playback.OnErrorListener;
+import com.coopsrc.oneplayer.core.playback.OnInfoListener;
+import com.coopsrc.oneplayer.core.playback.OnPlaybackStateChangedListener;
+import com.coopsrc.oneplayer.core.playback.OnPreparedListener;
+import com.coopsrc.oneplayer.core.playback.OnSeekCompleteListener;
+import com.coopsrc.oneplayer.core.playback.OnTimedMetaDataAvailableListener;
+import com.coopsrc.oneplayer.core.playback.OnTimedTextListener;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
-import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
-import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
-import com.coopsrc.oneplayer.core.text.TextComponent;
 import com.coopsrc.oneplayer.core.video.VideoComponent;
+import com.coopsrc.oneplayer.core.video.VideoListener;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -24,7 +31,7 @@ import java.util.Map;
  * <p>
  * Date: 2019-05-09 15:18
  */
-public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, TextComponent, MetadataComponent {
+public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent {
     String TAG = "OnePlayer";
 
     void addEventListener(EventListener listener);
@@ -82,6 +89,10 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
 
     int getVideoHeight();
 
+    int getRotationDegrees();
+
+    float getPixelRatio();
+
     void setLooping(boolean looping);
 
     boolean isLooping();
@@ -89,58 +100,6 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
     ITrackInfo[] getTrackInfo();
 
     int getPlaybackState();
-
-    interface OnBufferingUpdateListener {
-        default void onBufferingUpdate(OnePlayer player, int percent) {
-        }
-    }
-
-    interface OnCompletionListener {
-        default void onCompletion(OnePlayer player) {
-        }
-    }
-
-    interface OnErrorListener {
-        default boolean onError(OnePlayer player, int what, int extra) {
-            return true;
-        }
-    }
-
-    interface OnInfoListener {
-        default boolean onInfo(OnePlayer player, int what, int extra) {
-            return true;
-        }
-    }
-
-    interface OnPreparedListener {
-        default void onPrepared(OnePlayer player) {
-        }
-    }
-
-    interface OnSeekCompleteListener {
-        default void onSeekComplete(OnePlayer player) {
-        }
-    }
-
-    interface OnTimedTextListener {
-        default void onTimedText(OnePlayer player, ITimedText text) {
-        }
-    }
-
-    interface OnTimedMetaDataAvailableListener {
-        default void onTimedMetaDataAvailable(OnePlayer player, ITimedMetadata timedMetadata) {
-        }
-    }
-
-    interface OnVideoSizeChangedListener {
-        default void onVideoSizeChanged(OnePlayer player, int width, int height) {
-        }
-    }
-
-    interface OnPlaybackStateChangedListener {
-        default void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
-        }
-    }
 
     interface EventListener extends
             OnBufferingUpdateListener,
@@ -151,8 +110,8 @@ public interface OnePlayer extends IPlayerInfo, AudioComponent, VideoComponent, 
             OnSeekCompleteListener,
             OnTimedTextListener,
             OnTimedMetaDataAvailableListener,
-            OnVideoSizeChangedListener,
-            OnPlaybackStateChangedListener {
-
+            OnPlaybackStateChangedListener,
+            AudioListener,
+            VideoListener {
     }
 }
