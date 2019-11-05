@@ -344,6 +344,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         public void onBufferingUpdate(IMediaPlayer mp, int percent) {
             PlayerLogger.v(TAG, "onBufferingUpdate: %s", percent);
             if (getPlayer() != null) {
+                notifyOnPlaybackStateChanged(STATE_BUFFERING);
                 notifyOnBufferingUpdate(percent);
             }
         }
@@ -352,6 +353,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         public void onCompletion(IMediaPlayer mp) {
             PlayerLogger.i(TAG, "onCompletion: ");
             if (getPlayer() != null) {
+                notifyOnPlaybackStateChanged(STATE_COMPLETION);
                 notifyOnCompletion();
             }
         }
@@ -360,6 +362,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         public boolean onError(IMediaPlayer mp, int what, int extra) {
             PlayerLogger.i(TAG, "onError: [%s,%s]", what, extra);
             if (getPlayer() != null) {
+                notifyOnPlaybackStateChanged(STATE_ERROR);
                 return notifyOnError(what, extra);
             }
             return false;
@@ -379,6 +382,7 @@ public class OneIjkPlayer extends AbsOnePlayer<IjkMediaPlayer> {
         public void onPrepared(IMediaPlayer mp) {
             PlayerLogger.i(TAG, "onPrepared: ");
             if (getPlayer() != null) {
+                notifyOnPlaybackStateChanged(STATE_PREPARED);
                 notifyOnPrepared();
             }
         }

@@ -13,9 +13,6 @@ import androidx.annotation.Nullable;
  * Date: 2019-08-08 15:07
  */
 public interface VideoComponent {
-//    void addVideoListener(VideoListener videoListener);
-//
-//    void removeVideoListener(VideoListener videoListener);
 
     void clearVideoSurface();
 

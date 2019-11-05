@@ -224,6 +224,23 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     }
 
     @Override
+    public int getPlaybackState() {
+        switch (mInternalPlayer.getState()) {
+            case MediaPlayer2.PLAYER_STATE_ERROR:
+                return STATE_ERROR;
+            case MediaPlayer2.PLAYER_STATE_IDLE:
+                return STATE_IDLE;
+            case MediaPlayer2.PLAYER_STATE_PAUSED:
+                return STATE_PAUSED;
+            case MediaPlayer2.PLAYER_STATE_PLAYING:
+                return STATE_PLAYING;
+            case MediaPlayer2.PLAYER_STATE_PREPARED:
+            default:
+                return super.getPlaybackState();
+        }
+    }
+
+    @Override
     public void setWakeMode(Context context, int mode) {
 
     }
@@ -309,6 +326,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
                 super.onError(mediaPlayer2, item, what, extra);
                 PlayerLogger.i(TAG, "onError: [%s, %s]", what, extra);
                 notifyOnError(what, extra);
+                notifyOnPlaybackStateChanged(STATE_ERROR);
             }
 
             @Override
@@ -322,7 +340,6 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
             public void onCallCompleted(MediaPlayer2 mediaPlayer2, MediaItem item, int what, int status) {
                 super.onCallCompleted(mediaPlayer2, item, what, status);
                 PlayerLogger.i(TAG, "onCallCompleted: [%s, %s]", what, status);
-                notifyOnCompletion();
             }
 
             @Override

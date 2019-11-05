@@ -6,10 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.coopsrc.oneplayer.ui.PlayerView
+    <com.coopsrc.oneplayer.ui.VideoView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:maxHeight="1440px"
         app:layout_constraintDimensionRatio="h,16:9"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

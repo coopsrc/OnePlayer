@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+import androidx.arch.core.executor.ArchTaskExecutor;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.coopsrc.oneplayer.core.ControlDispatcher;
@@ -27,7 +28,6 @@ import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.utils.Assertions;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
-import com.coopsrc.oneplayer.core.video.VideoListener;
 import com.coopsrc.oneplayer.ui.widget.AspectRatioFrameLayout;
 
 import java.lang.annotation.Documented;
@@ -39,7 +39,7 @@ import java.lang.annotation.RetentionPolicy;
  * <p>
  * Date: 2019-05-10 16:39
  */
-public class PlayerView extends ConstraintLayout {
+public class VideoView extends ConstraintLayout {
     private static final String TAG = "PlayerView";
 
     // LINT.IfChange
@@ -83,7 +83,7 @@ public class PlayerView extends ConstraintLayout {
     @Nullable
     private final TextView errorMessageView;
     @Nullable
-    private final PlayerControlView controller;
+    private final VideoControlView controller;
     private final ComponentListener componentListener;
     @Nullable
     private final FrameLayout overlayFrameLayout;
@@ -101,37 +101,37 @@ public class PlayerView extends ConstraintLayout {
     private int textureViewRotation;
     private boolean isTouching;
 
-    public PlayerView(Context context) {
+    public VideoView(Context context) {
         this(context, null);
     }
 
-    public PlayerView(Context context, AttributeSet attrs) {
+    public VideoView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public PlayerView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         int playerLayoutId = R.layout.layout_player_view;
         boolean useController = true;
         int surfaceType = SURFACE_TYPE_SURFACE_VIEW;
         int resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT;
-        int controllerShowTimeoutMs = PlayerControlView.DEFAULT_SHOW_TIMEOUT_MS;
+        int controllerShowTimeoutMs = VideoControlView.DEFAULT_SHOW_TIMEOUT_MS;
         boolean controllerHideOnTouch = true;
         boolean controllerAutoShow = true;
         int showBuffering = SHOW_BUFFERING_NEVER;
         if (attrs != null) {
-            TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.PlayerView, 0, 0);
+            TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.VideoView, 0, 0);
             try {
-                playerLayoutId = a.getResourceId(R.styleable.PlayerView_player_layout_id, playerLayoutId);
-                useController = a.getBoolean(R.styleable.PlayerView_use_controller, useController);
-                surfaceType = a.getInt(R.styleable.PlayerView_surface_type, surfaceType);
-                resizeMode = a.getInt(R.styleable.PlayerView_resize_mode, resizeMode);
-                controllerShowTimeoutMs = a.getInt(R.styleable.PlayerView_show_timeout, controllerShowTimeoutMs);
-                controllerHideOnTouch = a.getBoolean(R.styleable.PlayerView_hide_on_touch, controllerHideOnTouch);
-                controllerAutoShow = a.getBoolean(R.styleable.PlayerView_auto_show, controllerAutoShow);
-                showBuffering = a.getInteger(R.styleable.PlayerView_show_buffering, showBuffering);
-                keepContentOnPlayerReset = a.getBoolean(R.styleable.PlayerView_keep_content_on_player_reset, keepContentOnPlayerReset);
+                playerLayoutId = a.getResourceId(R.styleable.VideoView_player_layout_id, playerLayoutId);
+                useController = a.getBoolean(R.styleable.VideoView_use_controller, useController);
+                surfaceType = a.getInt(R.styleable.VideoView_surface_type, surfaceType);
+                resizeMode = a.getInt(R.styleable.VideoView_resize_mode, resizeMode);
+                controllerShowTimeoutMs = a.getInt(R.styleable.VideoView_show_timeout, controllerShowTimeoutMs);
+                controllerHideOnTouch = a.getBoolean(R.styleable.VideoView_hide_on_touch, controllerHideOnTouch);
+                controllerAutoShow = a.getBoolean(R.styleable.VideoView_auto_show, controllerAutoShow);
+                showBuffering = a.getInteger(R.styleable.VideoView_show_buffering, showBuffering);
+                keepContentOnPlayerReset = a.getBoolean(R.styleable.VideoView_keep_content_on_player_reset, keepContentOnPlayerReset);
             } finally {
                 a.recycle();
             }
@@ -182,14 +182,14 @@ public class PlayerView extends ConstraintLayout {
         }
 
         // Playback control view.
-        PlayerControlView customController = findViewById(R.id.playback_controller);
+        VideoControlView customController = findViewById(R.id.playback_controller);
         View controllerPlaceholder = findViewById(R.id.playback_controller_placeholder);
         if (customController != null) {
             this.controller = customController;
         } else if (controllerPlaceholder != null) {
             // Propagate attrs as playbackAttrs so that PlayerControlView's custom attributes are
             // transferred, but standard attributes (e.g. background) are not.
-            this.controller = new PlayerControlView(context, null, 0, attrs);
+            this.controller = new VideoControlView(context, null, 0, attrs);
             controller.setId(R.id.playback_controller);
             controller.setLayoutParams(controllerPlaceholder.getLayoutParams());
             ViewGroup parent = ((ViewGroup) controllerPlaceholder.getParent());
@@ -209,23 +209,23 @@ public class PlayerView extends ConstraintLayout {
     /**
      * Switches the view targeted by a given {@link OnePlayer}.
      *
-     * @param player        The player whose target view is being switched.
-     * @param oldPlayerView The old view to detach from the player.
-     * @param newPlayerView The new view to attach to the player.
+     * @param player       The player whose target view is being switched.
+     * @param oldVideoView The old view to detach from the player.
+     * @param newVideoView The new view to attach to the player.
      */
-    public static void switchTargetView(OnePlayer player, @Nullable PlayerView oldPlayerView, @Nullable PlayerView newPlayerView) {
-        if (oldPlayerView == newPlayerView) {
+    public static void switchTargetView(OnePlayer player, @Nullable VideoView oldVideoView, @Nullable VideoView newVideoView) {
+        if (oldVideoView == newVideoView) {
             return;
         }
         // We attach the new view before detaching the old one because this ordering allows the player
         // to swap directly from one surface to another, without transitioning through a state where no
         // surface is attached. This is significantly more efficient and achieves a more seamless
         // transition when using platform provided video decoders.
-        if (newPlayerView != null) {
-            newPlayerView.setPlayer(player);
+        if (newVideoView != null) {
+            newVideoView.setPlayer(player);
         }
-        if (oldPlayerView != null) {
-            oldPlayerView.setPlayer(null);
+        if (oldVideoView != null) {
+            oldVideoView.setPlayer(null);
         }
     }
 
@@ -240,7 +240,7 @@ public class PlayerView extends ConstraintLayout {
      * Set the {@link OnePlayer} to use.
      *
      * <p>To transition a {@link OnePlayer} from targeting one view to another, it's recommended to use
-     * {@link #switchTargetView(OnePlayer, PlayerView, PlayerView)} rather than this method. If you do
+     * {@link #switchTargetView(OnePlayer, VideoView, VideoView)} rather than this method. If you do
      * wish to use this method directly, be sure to attach the player to the new view <em>before</em>
      * calling {@code setPlayer(null)} to detach it from the old one. This ordering is significantly
      * more efficient and may allow for more seamless transitions.
@@ -506,11 +506,11 @@ public class PlayerView extends ConstraintLayout {
     }
 
     /**
-     * Set the {@link PlayerControlView.VisibilityListener}.
+     * Set the {@link VideoControlView.VisibilityListener}.
      *
      * @param listener The listener to be notified about visibility changes.
      */
-    public void setControllerVisibilityListener(PlayerControlView.VisibilityListener listener) {
+    public void setControllerVisibilityListener(VideoControlView.VisibilityListener listener) {
         Assertions.checkState(controller != null);
         if (controller != null) {
             controller.setVisibilityListener(listener);
@@ -691,7 +691,7 @@ public class PlayerView extends ConstraintLayout {
         int playbackState = player.getPlaybackState();
         return controllerAutoShow
                 && (playbackState == OnePlayer.STATE_IDLE
-                || playbackState == OnePlayer.STATE_ENDED);
+                || playbackState == OnePlayer.STATE_COMPLETION);
     }
 
     private void showController(boolean showIndefinitely) {
@@ -766,7 +766,7 @@ public class PlayerView extends ConstraintLayout {
                 || keyCode == KeyEvent.KEYCODE_DPAD_CENTER;
     }
 
-    private final class ComponentListener implements OnePlayer.EventListener,  OnLayoutChangeListener {
+    private final class ComponentListener implements OnePlayer.EventListener, OnLayoutChangeListener {
 
         @Override
         public void onVideoSizeChanged(OnePlayer player, int width, int height, int rotationDegrees, float ratio) {
@@ -791,8 +791,13 @@ public class PlayerView extends ConstraintLayout {
                 }
                 applyTextureViewRotation((TextureView) surfaceView, textureViewRotation);
             }
-
-            onContentAspectRatioChanged(videoAspectRatio, contentFrame);
+            float finalVideoAspectRatio = videoAspectRatio;
+            ArchTaskExecutor.getInstance().postToMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    onContentAspectRatioChanged(finalVideoAspectRatio, contentFrame);
+                }
+            });
         }
 
         @Override
@@ -806,8 +811,8 @@ public class PlayerView extends ConstraintLayout {
         }
 
         @Override
-        public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
-            PlayerLogger.i(TAG, "onPlaybackStateChanged: [%s, %s]", playWhenReady, playbackState);
+        public void onPlaybackStateChanged(int playbackState) {
+            PlayerLogger.i(TAG, "onPlaybackStateChanged: [%s]", playbackState);
             updateBuffering();
             updateErrorMessage();
             maybeShowController(false);

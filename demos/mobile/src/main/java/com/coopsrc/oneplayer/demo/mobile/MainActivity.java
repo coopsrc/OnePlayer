@@ -17,7 +17,7 @@ import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
-import com.coopsrc.oneplayer.ui.PlayerView;
+import com.coopsrc.oneplayer.ui.VideoView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String MPD = "https://www.youtube.com/api/manifest/dash/id/bf5bb2419360daf1/source/youtube?as=fmp4_audio_clear,fmp4_sd_hd_clear&sparams=ip,ipbits,expire,source,id,as&ip=0.0.0.0&ipbits=0&expire=19000000000&signature=51AF5F39AB0CEC3E5497CD9C900EBFEAECCCB5C7.8506521BFC350652163895D4C26DEE124209AA9E&key=ik0";
 
-    private PlayerView mPlayerView;
+    private VideoView mVideoView;
 
     private OnePlayer mPlayer;
 
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: " + OneMercuryPlayer.ffmpegVersion());
 
-        mPlayerView = findViewById(R.id.player_view);
+        mVideoView = findViewById(R.id.player_view);
 
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia2);
@@ -130,20 +130,20 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onVideoSizeChanged(OnePlayer player, int width, int height, int rotationDegrees, float pixelRatio) {
-                PlayerLogger.i(TAG, "onVideoSizeChanged: ");
+                PlayerLogger.i(TAG, "onVideoSizeChanged: [%s, %s]", width, height);
             }
 
             @Override
-            public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
-                PlayerLogger.i(TAG, "onPlaybackStateChanged: ");
+            public void onPlaybackStateChanged(int playbackState) {
+                PlayerLogger.i(TAG, "onPlaybackStateChanged: %s", playbackState);
             }
         });
 
-        mPlayerView.setPlayer(mPlayer);
-        mPlayerView.setPlaybackPreparer(new PlaybackPreparer() {
+        mVideoView.setPlayer(mPlayer);
+        mVideoView.setPlaybackPreparer(new PlaybackPreparer() {
             @Override
             public void preparePlayback() {
-                if (mPlayer.getPlaybackState()== OnePlayer.STATE_IDLE){
+                if (mPlayer.getPlaybackState() == OnePlayer.STATE_IDLE) {
                     mPlayer.prepareAsync();
                 }
             }

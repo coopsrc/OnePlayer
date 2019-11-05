@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Build;
 
+import androidx.annotation.Nullable;
+
 import org.checkerframework.checker.nullness.compatqual.NullableType;
 import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
 
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,12 +51,10 @@ public final class PlayerUtils {
     /**
      * A concise description of the device that it can be useful to log for debugging purposes.
      */
-    public static final String DEVICE_DEBUG_INFO = String.format("%s,%s,%s,%s", DEVICE, MODEL, MANUFACTURER, SDK_INT);
+    public static final String DEVICE_DEBUG_INFO = String.format("%s, %s, %s, %s", DEVICE, MODEL, MANUFACTURER, SDK_INT);
 
 
     public static String formatPlayingTime(StringBuilder builder, Formatter formatter, long timeStamp) {
-
-
         String timeStr = "00:00";
 
         if (timeStamp > 0) {
@@ -138,6 +139,9 @@ public final class PlayerUtils {
                 : formatter.format("%02d:%02d", minutes, seconds).toString();
     }
 
+    public static boolean areEqual(@Nullable Object o1, @Nullable Object o2) {
+        return Objects.equals(o1, o2);
+    }
 
     /**
      * Casts a nullable type array to a non-null type array without runtime null check.

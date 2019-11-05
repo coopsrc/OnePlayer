@@ -18,6 +18,7 @@ import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
+import com.coopsrc.oneplayer.core.utils.PlayerUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -39,6 +40,9 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     private int mBufferedPercentage;
 
     private float audioVolume;
+
+    @State
+    private int playbackState = STATE_IDLE;
 
     @Nullable
     private Surface surface;
@@ -66,7 +70,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     private void printDebugInfo() {
         String hexString = Integer.toHexString(System.identityHashCode(this));
-        String deviceInfo = Constants.DEVICE_DEBUG_INFO;
+        String deviceInfo = PlayerUtils.DEVICE_DEBUG_INFO;
         String libVersion = PlayerLibraryInfo.VERSION_SLASHY;
         PlayerLogger.i(TAG, "Init %s [%s] [%s]", hexString, libVersion, deviceInfo);
     }
@@ -279,7 +283,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public int getPlaybackState() {
-        return OnePlayer.STATE_IDLE;
+        return playbackState;
     }
 
     protected Executor getIOThreadExecutor() {
@@ -377,11 +381,12 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         });
     }
 
-    protected final void notifyOnPlaybackStateChanged(boolean playWhenReady, int playbackState) {
+    protected final void notifyOnPlaybackStateChanged(int playbackState) {
+        this.playbackState = playbackState;
         notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
-                listener.onPlaybackStateChanged(playWhenReady, playbackState);
+                listener.onPlaybackStateChanged(playbackState);
             }
         });
     }
@@ -477,8 +482,13 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         }
 
         while (!mPendingListenerNotifications.isEmpty()) {
-            mPendingListenerNotifications.peekFirst().run();
-            mPendingListenerNotifications.removeFirst();
+            Runnable runnable = mPendingListenerNotifications.peekFirst();
+            if (runnable != null) {
+                runnable.run();
+                mPendingListenerNotifications.remove(runnable);
+            }
+//            mPendingListenerNotifications.peekFirst().run();
+//            mPendingListenerNotifications.removeFirst();
         }
 
     }

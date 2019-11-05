@@ -443,7 +443,24 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             PlayerLogger.i(TAG, "onPlayerStateChanged: [%s,%s]", playWhenReady, playbackState);
-            notifyOnPlaybackStateChanged(playWhenReady, playbackState);
+            switch (playbackState) {
+                case Player.STATE_IDLE:
+                    notifyOnPlaybackStateChanged(STATE_IDLE);
+                    break;
+                case Player.STATE_BUFFERING:
+                    notifyOnPlaybackStateChanged(STATE_BUFFERING);
+                    break;
+                case Player.STATE_READY:
+                    if (getInternalPlayer().getPlayWhenReady()) {
+                        notifyOnPlaybackStateChanged(STATE_PLAYING);
+                    } else {
+                        notifyOnPlaybackStateChanged(STATE_PAUSED);
+                    }
+                    break;
+                case Player.STATE_ENDED:
+                    notifyOnPlaybackStateChanged(STATE_STOPPED);
+                    break;
+            }
         }
 
         @Override
@@ -460,6 +477,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         public void onPlayerError(ExoPlaybackException error) {
             PlayerLogger.i(TAG, "onPlayerError: %s", error);
             notifyOnError(error.type, error.rendererIndex);
+            notifyOnPlaybackStateChanged(STATE_ERROR);
         }
 
         @Override

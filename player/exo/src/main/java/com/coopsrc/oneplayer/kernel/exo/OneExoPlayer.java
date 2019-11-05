@@ -408,9 +408,11 @@ public class OneExoPlayer extends AbsOnePlayer<DemoPlayer> {
                     mIsBuffering = true;
                     break;
                 case ExoPlayer.STATE_READY:
+                    notifyOnPlaybackStateChanged(STATE_PLAYING);
                     break;
                 case ExoPlayer.STATE_ENDED:
                     notifyOnCompletion();
+                    notifyOnPlaybackStateChanged(STATE_COMPLETION);
                     break;
                 default:
                     break;

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
-    tools:context="com.coopsrc.oneplayer.ui.PlayerView">
+    tools:context="com.coopsrc.oneplayer.ui.VideoView">
 
     <View
         android:id="@+id/player_background"

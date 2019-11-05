@@ -12,9 +12,11 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.arch.core.executor.ArchTaskExecutor;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.coopsrc.oneplayer.core.ControlDispatcher;
@@ -25,7 +27,6 @@ import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
-import com.coopsrc.oneplayer.ui.widget.ProgressTimeBar;
 
 import java.util.Formatter;
 import java.util.Locale;
@@ -35,7 +36,7 @@ import java.util.Locale;
  * <p>
  * Date: 2019-05-10 16:40
  */
-public class PlayerControlView extends ConstraintLayout {
+public class VideoControlView extends ConstraintLayout {
     private static final String TAG = "PlayerControlView";
 
     static {
@@ -91,12 +92,12 @@ public class PlayerControlView extends ConstraintLayout {
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
 
     private final ComponentListener componentListener;
-    private final View previousButton;
-    private final View nextButton;
-    private final View playPauseButton;
-    private final View fastForwardButton;
-    private final View rewindButton;
-    private final View fullScreenButton;
+    private final ImageButton previousButton;
+    private final ImageButton nextButton;
+    private final ImageButton playPauseButton;
+    private final ImageButton fastForwardButton;
+    private final ImageButton rewindButton;
+    private final ImageButton fullScreenButton;
     private final TextView durationView;
     private final TextView positionView;
     private final TimeBar timeBar;
@@ -123,19 +124,19 @@ public class PlayerControlView extends ConstraintLayout {
     private int timeBarMinUpdateIntervalMs;
     private long hideAtMs;
 
-    public PlayerControlView(Context context) {
+    public VideoControlView(Context context) {
         this(context, null);
     }
 
-    public PlayerControlView(Context context, AttributeSet attrs) {
+    public VideoControlView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public PlayerControlView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoControlView(Context context, AttributeSet attrs, int defStyleAttr) {
         this(context, attrs, defStyleAttr, attrs);
     }
 
-    public PlayerControlView( Context context, AttributeSet attrs, int defStyleAttr, AttributeSet playbackAttrs) {
+    public VideoControlView(Context context, AttributeSet attrs, int defStyleAttr, AttributeSet playbackAttrs) {
         super(context, attrs, defStyleAttr);
         int controllerLayoutId = R.layout.layout_playback_control_view;
         rewindMs = DEFAULT_REWIND_MS;
@@ -144,13 +145,13 @@ public class PlayerControlView extends ConstraintLayout {
         timeBarMinUpdateIntervalMs = DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS;
         hideAtMs = Constants.TIME_UNSET;
         if (playbackAttrs != null) {
-            TypedArray a = context.getTheme().obtainStyledAttributes(playbackAttrs, R.styleable.PlayerControlView, 0, 0);
+            TypedArray a = context.getTheme().obtainStyledAttributes(playbackAttrs, R.styleable.VideoControlView, 0, 0);
             try {
-                rewindMs = a.getInt(R.styleable.PlayerControlView_rewind_increment, rewindMs);
-                fastForwardMs = a.getInt(R.styleable.PlayerControlView_fastforward_increment, fastForwardMs);
-                showTimeoutMs = a.getInt(R.styleable.PlayerControlView_show_timeout, showTimeoutMs);
-                controllerLayoutId = a.getResourceId(R.styleable.PlayerControlView_controller_layout_id, controllerLayoutId);
-                setTimeBarMinUpdateInterval(a.getInt(R.styleable.PlayerControlView_time_bar_min_update_interval, timeBarMinUpdateIntervalMs));
+                rewindMs = a.getInt(R.styleable.VideoControlView_rewind_increment, rewindMs);
+                fastForwardMs = a.getInt(R.styleable.VideoControlView_fastforward_increment, fastForwardMs);
+                showTimeoutMs = a.getInt(R.styleable.VideoControlView_show_timeout, showTimeoutMs);
+                controllerLayoutId = a.getResourceId(R.styleable.VideoControlView_controller_layout_id, controllerLayoutId);
+                setTimeBarMinUpdateInterval(a.getInt(R.styleable.VideoControlView_time_bar_min_update_interval, timeBarMinUpdateIntervalMs));
             } finally {
                 a.recycle();
             }
@@ -172,7 +173,7 @@ public class PlayerControlView extends ConstraintLayout {
         } else if (timeBarPlaceholder != null) {
             // Propagate attrs as timebarAttrs so that DefaultTimeBar's custom attributes are transferred,
             // but standard attributes (e.g. background) are not.
-            ProgressTimeBar defaultTimeBar = new ProgressTimeBar(context, null, 0);
+            DefaultTimeBar defaultTimeBar = new DefaultTimeBar(context, null, 0);
             defaultTimeBar.setId(R.id.progress_bar);
             defaultTimeBar.setLayoutParams(timeBarPlaceholder.getLayoutParams());
             ViewGroup parent = ((ViewGroup) timeBarPlaceholder.getParent());
@@ -358,8 +359,7 @@ public class PlayerControlView extends ConstraintLayout {
             if (visibilityListener != null) {
                 visibilityListener.onVisibilityChange(getVisibility());
             }
-//            updateAll();
-            requestPlayPauseFocus();
+            updateAll();
         }
         // Call hideAfterTimeout even if already visible to reset the timeout.
         hideAfterTimeout();
@@ -409,14 +409,17 @@ public class PlayerControlView extends ConstraintLayout {
         if (!isVisible() || !isAttachedToWindow) {
             return;
         }
-        boolean requestPlayPauseFocus = false;
-        boolean playing = isPlaying();
-        if (playPauseButton != null) {
-            requestPlayPauseFocus |= playing && playPauseButton.isFocused();
-            playPauseButton.setVisibility(playing ? GONE : VISIBLE);
-        }
-        if (requestPlayPauseFocus) {
-            requestPlayPauseFocus();
+
+        if (playPauseButton != null && player != null) {
+            if (isPlaying()) {
+                if (player.getPlaybackState() == OnePlayer.STATE_PLAYING) {
+                    playPauseButton.setImageResource(R.drawable.ic_pause_white_24dp);
+                } else {
+                    playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_24dp);
+                }
+            } else {
+                playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_24dp);
+            }
         }
     }
 
@@ -452,7 +455,7 @@ public class PlayerControlView extends ConstraintLayout {
         if (timeBar != null) {
             timeBar.setDuration(duration);
         }
-//        updateProgress();
+        updateProgress();
     }
 
     private void updateProgress() {
@@ -460,7 +463,6 @@ public class PlayerControlView extends ConstraintLayout {
         if (!isVisible() || !isAttachedToWindow) {
             return;
         }
-
         long position = 0;
         long bufferedPosition = 0;
         if (player != null) {
@@ -482,7 +484,7 @@ public class PlayerControlView extends ConstraintLayout {
         // Cancel any pending updates and schedule a new one if necessary.
         removeCallbacks(updateProgressAction);
         int playbackState = player == null ? OnePlayer.STATE_IDLE : player.getPlaybackState();
-        if (playbackState == OnePlayer.STATE_PREPARED ) {
+        if (playbackState == OnePlayer.STATE_PREPARED) {
             long mediaTimeDelayMs = timeBar != null ? timeBar.getPreferredUpdateDelay() : MAX_UPDATE_INTERVAL_MS;
 
             // Limit delay to the start of the next full second to ensure position display is smooth.
@@ -494,17 +496,11 @@ public class PlayerControlView extends ConstraintLayout {
 
             // Constrain the delay to avoid too frequent / infrequent updates.
             delayMs = PlayerUtils.constrainValue(delayMs, timeBarMinUpdateIntervalMs, MAX_UPDATE_INTERVAL_MS);
-//            postDelayed(updateProgressAction, delayMs);
-        } else if (playbackState != OnePlayer.STATE_ENDED && playbackState != OnePlayer.STATE_IDLE) {
-//            postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
+            postDelayed(updateProgressAction, delayMs);
+        } else if (playbackState != OnePlayer.STATE_COMPLETION && playbackState != OnePlayer.STATE_IDLE) {
+            postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
         }
 //        postDelayed(updateProgressAction, MAX_UPDATE_INTERVAL_MS);
-    }
-
-    private void requestPlayPauseFocus() {
-        if (playPauseButton != null) {
-            playPauseButton.requestFocus();
-        }
     }
 
     private void setButtonEnabled(boolean enabled, View view) {
@@ -569,7 +565,7 @@ public class PlayerControlView extends ConstraintLayout {
         } else if (isVisible()) {
             hideAfterTimeout();
         }
-//        updateAll();
+        updateAll();
     }
 
     @Override
@@ -638,7 +634,7 @@ public class PlayerControlView extends ConstraintLayout {
 
     private boolean isPlaying() {
         return player != null
-                && player.getPlaybackState() != OnePlayer.STATE_ENDED
+                && player.getPlaybackState() != OnePlayer.STATE_COMPLETION
                 && player.getPlaybackState() != OnePlayer.STATE_IDLE;
     }
 
@@ -658,14 +654,19 @@ public class PlayerControlView extends ConstraintLayout {
         @Override
         public boolean onInfo(OnePlayer player, int what, int extra) {
             PlayerLogger.i(TAG, "onInfo: [%s, %s]", what, extra);
+            ArchTaskExecutor.getInstance().postToMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    switch (what) {
+                        case OnePlayer.MEDIA_INFO_BUFFERING_START:
+                        case OnePlayer.MEDIA_INFO_BUFFERING_END:
+                        case OnePlayer.MEDIA_INFO_BUFFERING_UPDATE:
+                            updateTimeline();
+                            break;
+                    }
+                }
+            });
 
-            switch (what) {
-                case OnePlayer.MEDIA_INFO_BUFFERING_START:
-                    break;
-                case OnePlayer.MEDIA_INFO_BUFFERING_END:
-                    updateTimeline();
-                    break;
-            }
 
             return false;
         }
@@ -697,8 +698,8 @@ public class PlayerControlView extends ConstraintLayout {
         }
 
         @Override
-        public void onPlaybackStateChanged(boolean playWhenReady, int playbackState) {
-            PlayerLogger.i(TAG, "onPlaybackStateChanged: [%s: %s]", playWhenReady, playbackState);
+        public void onPlaybackStateChanged(int playbackState) {
+            PlayerLogger.i(TAG, "onPlaybackStateChanged: [%s]", playbackState);
             updatePlayPauseButton();
             updateProgress();
         }
@@ -706,7 +707,7 @@ public class PlayerControlView extends ConstraintLayout {
         @Override
         public void onClick(View view) {
             PlayerLogger.i(TAG, "onClick: %s", view.getId());
-            OnePlayer player = PlayerControlView.this.player;
+            OnePlayer player = VideoControlView.this.player;
             if (player == null) {
                 return;
             }
@@ -723,7 +724,7 @@ public class PlayerControlView extends ConstraintLayout {
                     if (playbackPreparer != null) {
                         playbackPreparer.preparePlayback();
                     }
-                } else if (player.getPlaybackState() == OnePlayer.STATE_ENDED) {
+                } else if (player.getPlaybackState() == OnePlayer.STATE_COMPLETION) {
                     controlDispatcher.dispatchSeekTo(player, Constants.TIME_UNSET);
                 }
                 if (player.isPlaying()) {

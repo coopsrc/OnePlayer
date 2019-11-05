@@ -3,6 +3,7 @@ package com.coopsrc.oneplayer.ui.widget;
 import android.content.Context;
 import android.util.AttributeSet;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatSeekBar;
 
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
@@ -80,5 +81,10 @@ public class ProgressTimeBar extends AppCompatSeekBar implements TimeBar {
     @Override
     public long getPreferredUpdateDelay() {
         return 0;
+    }
+
+    @Override
+    public void setAdGroupTimesMs(@Nullable long[] adGroupTimesMs, @Nullable boolean[] playedAdGroups, int adGroupCount) {
+
     }
 }

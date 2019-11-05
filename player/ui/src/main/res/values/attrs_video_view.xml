@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Must be kept in sync with PlayerView -->
+    <attr name="surface_type" format="enum">
+        <enum name="none" value="0"/>
+        <enum name="surface_view" value="1"/>
+        <enum name="texture_view" value="2"/>
+        <enum name="spherical_view" value="3"/>
+    </attr>
+
+    <declare-styleable name="VideoView">
+        <attr name="use_artwork" format="boolean"/>
+        <attr name="shutter_background_color" format="color"/>
+        <attr name="default_artwork" format="reference"/>
+        <attr name="use_controller" format="boolean"/>
+        <attr name="hide_on_touch" format="boolean"/>
+        <attr name="hide_during_ads" format="boolean"/>
+        <attr name="auto_show" format="boolean"/>
+        <attr name="show_buffering" format="enum">
+            <enum name="never" value="0"/>
+            <enum name="when_playing" value="1"/>
+            <enum name="always" value="2"/>
+        </attr>
+        <attr name="keep_content_on_player_reset" format="boolean"/>
+        <attr name="player_layout_id" format="reference"/>
+
+        <attr name="surface_type"/>
+        <!-- AspectRatioFrameLayout attributes -->
+        <attr name="resize_mode"/>
+        <!-- PlayerControlView attributes -->
+        <attr name="show_timeout"/>
+        <attr name="rewind_increment"/>
+        <attr name="fastforward_increment"/>
+        <attr name="repeat_toggle_modes"/>
+        <attr name="show_shuffle_button"/>
+        <attr name="time_bar_min_update_interval"/>
+        <attr name="controller_layout_id"/>
+        <!-- DefaultTimeBar attributes -->
+        <attr name="bar_height"/>
+        <attr name="touch_target_height"/>
+        <attr name="ad_marker_width"/>
+        <attr name="scrubber_enabled_size"/>
+        <attr name="scrubber_disabled_size"/>
+        <attr name="scrubber_dragged_size"/>
+        <attr name="scrubber_drawable"/>
+        <attr name="played_color"/>
+        <attr name="scrubber_color"/>
+        <attr name="buffered_color" />
+        <attr name="unplayed_color"/>
+        <attr name="ad_marker_color"/>
+        <attr name="played_ad_marker_color"/>
+    </declare-styleable>
+
+
+</resources>

@@ -115,6 +115,4 @@ public class Constants {
         return (timeMs == TIME_UNSET || timeMs == TIME_END_OF_SOURCE) ? timeMs : (timeMs * 1000);
     }
 
-
-    public static final String DEVICE_DEBUG_INFO = String.format("%s, %s, %s, %s", Build.DEVICE, Build.MODEL, Build.MANUFACTURER, Build.VERSION.SDK_INT);
 }

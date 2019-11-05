@@ -136,6 +136,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     public void prepareAsync() throws IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.prepareAsync();
+            notifyOnPlaybackStateChanged(STATE_CONNECTING);
         }
     }
 
@@ -143,6 +144,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     public void start() throws IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.start();
+            notifyOnPlaybackStateChanged(STATE_PLAYING);
         }
     }
 
@@ -150,6 +152,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     public void stop() throws IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.stop();
+            notifyOnPlaybackStateChanged(STATE_STOPPED);
         }
     }
 
@@ -157,6 +160,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     public void pause() throws IllegalStateException {
         if (mInternalPlayer != null) {
             mInternalPlayer.pause();
+            notifyOnPlaybackStateChanged(STATE_PAUSED);
         }
     }
 
@@ -209,7 +213,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public long getCurrentPosition() {
-        if (mInternalPlayer != null) {
+        if (isPlaying()) {
             try {
                 return mInternalPlayer.getCurrentPosition();
             } catch (IllegalStateException e) {
@@ -222,7 +226,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
 
     @Override
     public long getDuration() {
-        if (mInternalPlayer != null) {
+        if (isPlaying()) {
             try {
                 return mInternalPlayer.getDuration();
             } catch (IllegalStateException e) {
@@ -345,7 +349,8 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         public void onBufferingUpdate(MediaPlayer mp, int percent) {
             PlayerLogger.v(TAG, "onBufferingUpdate: %s", percent);
             if (getPlayer() != null) {
-                getPlayer().notifyOnBufferingUpdate(percent);
+                notifyOnBufferingUpdate(percent);
+                notifyOnPlaybackStateChanged(STATE_BUFFERING);
             }
         }
 
@@ -353,7 +358,8 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         public void onCompletion(MediaPlayer mp) {
             PlayerLogger.i(TAG, "onCompletion: ");
             if (getPlayer() != null) {
-                getPlayer().notifyOnCompletion();
+                notifyOnCompletion();
+                notifyOnPlaybackStateChanged(STATE_COMPLETION);
             }
         }
 
@@ -361,7 +367,8 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         public boolean onError(MediaPlayer mp, int what, int extra) {
             PlayerLogger.i(TAG, "onError: [%s,%s]", what, extra);
             if (getPlayer() != null) {
-                return getPlayer().notifyOnError(what, extra);
+                notifyOnPlaybackStateChanged(STATE_ERROR);
+                return notifyOnError(what, extra);
             }
             return false;
         }
@@ -370,7 +377,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         public boolean onInfo(MediaPlayer mp, int what, int extra) {
             PlayerLogger.i(TAG, "onInfo: [%s,%s]", what, extra);
             if (getPlayer() != null) {
-                return getPlayer().notifyOnInfo(what, extra);
+                return notifyOnInfo(what, extra);
             }
 
             return false;
@@ -380,7 +387,8 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
         public void onPrepared(MediaPlayer mp) {
             PlayerLogger.i(TAG, "onPrepared: ");
             if (getPlayer() != null) {
-                getPlayer().notifyOnPrepared();
+                notifyOnPlaybackStateChanged(STATE_PREPARED);
+                notifyOnPrepared();
             }
         }
 
