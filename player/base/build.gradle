@@ -32,7 +32,7 @@ dependencies {
     api 'androidx.annotation:annotation:1.1.0'
     implementation "androidx.arch.core:core-runtime:2.1.0"
 
-    implementation "com.jakewharton.timber:timber:$timberVersion"
+    implementation "com.jakewharton.timber:timber:4.7.1"
 
     compileOnly 'org.checkerframework:checker-qual:2.5.5'
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'
