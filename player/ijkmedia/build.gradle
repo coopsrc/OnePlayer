@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+apply from: '../../constants.gradle'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -31,7 +33,7 @@ dependencies {
 
     api project(':player-base')
 
-    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+    implementation "tv.danmaku.ijk.media:ijkplayer-java:$ijkplayer"
 }
 
 ext {

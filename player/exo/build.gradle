@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+apply from: '../../constants.gradle'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -31,7 +33,7 @@ dependencies {
 
     api project(':player-base')
 
-    implementation 'com.google.android.exoplayer:exoplayer:r1.5.16'
+    implementation "com.google.android.exoplayer:exoplayer:$exoplayer"
 }
 
 

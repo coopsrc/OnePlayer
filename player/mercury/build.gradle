@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+apply from: '../../constants.gradle'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -8,8 +10,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
-//        versionName rootProject.ext.versionName
-        versionName "1.0.0-alpha01"
+        versionName rootProject.ext.versionName
 
         externalNativeBuild {
             cmake {
@@ -49,6 +50,5 @@ dependencies {
 ext {
     releaseArtifact = 'oneplayer-mercury'
     releaseDescription = 'The OnePlayer library ffmpeg module.'
-    versionName = "1.0.0-alpha01"
 }
 apply from: '../../publish.gradle'

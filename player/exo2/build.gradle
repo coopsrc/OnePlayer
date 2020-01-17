@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+apply from: '../../constants.gradle'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -31,13 +33,13 @@ dependencies {
 
     api project(':player-base')
 
-    implementation "androidx.core:core:1.1.0"
+    implementation "androidx.core:core:$androidx_core_version"
 
-//    implementation 'com.google.android.exoplayer:exoplayer:2.11.1'
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.11.1'
-    implementation 'com.google.android.exoplayer:exoplayer-dash:2.11.1'
-    implementation 'com.google.android.exoplayer:exoplayer-hls:2.11.1'
-    implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.11.1'
+//    implementation "com.google.android.exoplayer:exoplayer:$exoplayer2"
+    implementation "com.google.android.exoplayer:exoplayer-core:$exoplayer2"
+    implementation "com.google.android.exoplayer:exoplayer-dash:$exoplayer2"
+    implementation "com.google.android.exoplayer:exoplayer-hls:$exoplayer2"
+    implementation "com.google.android.exoplayer:exoplayer-smoothstreaming:$exoplayer2"
 }
 
 

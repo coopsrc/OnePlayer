@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+apply from: '../../constants.gradle'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -29,12 +31,12 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api 'androidx.annotation:annotation:1.1.0'
-    implementation "androidx.arch.core:core-runtime:2.1.0"
+    api "androidx.annotation:annotation:$androidx_annotation"
+    implementation "androidx.arch.core:core-runtime:$androidx_arch_core"
 
-    implementation "com.jakewharton.timber:timber:4.7.1"
+    implementation "com.coopsrc.xandroid:common-utils:$xandroid"
 
-    compileOnly 'org.checkerframework:checker-qual:2.5.5'
+    compileOnly 'org.checkerframework:checker-qual:3.1.0'
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'
 }
 

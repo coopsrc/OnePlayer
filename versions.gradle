@@ -1,0 +1,25 @@
+ext {
+    compileSdkVersion = 29
+    minSdkVersion = 21
+    targetSdkVersion = 29
+    buildToolsVersion = "29.0.2"
+
+    // A.BB.CCC
+    // Major.Minor.Revision
+    majorVersion = 1
+    minorVersion = 0
+    revisionVersion = 0
+    snapshotVersion = 0
+    versionCode = generateVersionCode(majorVersion, minorVersion, revisionVersion)
+    versionNameBase = generateVersionName(majorVersion, minorVersion, revisionVersion)
+    versionNameAlpha = versionNameBase + '-alpha' + snapshotVersion
+    versionName = versionNameAlpha
+}
+
+static def generateVersionCode(def major, def minor, def revision) {
+    return major * 100000 + minor * 1000 + revision
+}
+
+static def generateVersionName(def major, def minor, def revision) {
+    return '' + major + '.' + minor + '.' + revision
+}

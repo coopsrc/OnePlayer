@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+apply from: '../../constants.gradle'
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -32,15 +34,16 @@ dependencies {
 
     api project(':player-base')
 
-    implementation "androidx.core:core:1.1.0"
-    implementation "androidx.media2:media2-common:1.0.1"
-    implementation "androidx.media2:media2-player:1.0.1"
-    implementation "androidx.media2:media2-session:1.0.1"
-    implementation "androidx.media2:media2-widget:1.0.1"
+    implementation "androidx.core:core:$androidx_core_version"
+    implementation "androidx.media2:media2-common:$androidx_media2"
+    implementation "androidx.media2:media2-player:$androidx_media2"
+    implementation "androidx.media2:media2-session:$androidx_media2"
+    implementation "androidx.media2:media2-widget:$androidx_media2"
 }
 
 ext {
     releaseArtifact = 'oneplayer-media2'
     releaseDescription = 'The OnePlayer library MediaPlayer2 kernel module.'
 }
+
 apply from: '../../publish.gradle'
