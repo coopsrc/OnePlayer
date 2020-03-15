@@ -9,6 +9,12 @@
         <enum name="spherical_view" value="3"/>
     </attr>
 
+    <attr name="repeat_toggle_modes">
+        <flag name="none" value="0"/>
+        <flag name="one" value="1"/>
+        <flag name="all" value="2"/>
+    </attr>
+
     <declare-styleable name="VideoView">
         <attr name="use_artwork" format="boolean"/>
         <attr name="shutter_background_color" format="color"/>

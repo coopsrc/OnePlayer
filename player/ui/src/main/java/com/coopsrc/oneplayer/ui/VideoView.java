@@ -29,6 +29,7 @@ import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.utils.Assertions;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.ui.widget.AspectRatioFrameLayout;
+import com.coopsrc.xandroid.utils.AppTaskExecutors;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -792,7 +793,7 @@ public class VideoView extends ConstraintLayout {
                 applyTextureViewRotation((TextureView) surfaceView, textureViewRotation);
             }
             float finalVideoAspectRatio = videoAspectRatio;
-            ArchTaskExecutor.getInstance().postToMainThread(new Runnable() {
+            AppTaskExecutors.getInstance().postToMainThread(new Runnable() {
                 @Override
                 public void run() {
                     onContentAspectRatioChanged(finalVideoAspectRatio, contentFrame);

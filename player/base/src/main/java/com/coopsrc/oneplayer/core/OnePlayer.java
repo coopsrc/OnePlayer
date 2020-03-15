@@ -8,6 +8,8 @@ import androidx.annotation.RequiresApi;
 
 import com.coopsrc.oneplayer.core.audio.AudioComponent;
 import com.coopsrc.oneplayer.core.audio.AudioListener;
+import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
+import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.playback.OnBufferingUpdateListener;
 import com.coopsrc.oneplayer.core.playback.OnCompletionListener;
 import com.coopsrc.oneplayer.core.playback.OnErrorListener;
@@ -17,8 +19,6 @@ import com.coopsrc.oneplayer.core.playback.OnPreparedListener;
 import com.coopsrc.oneplayer.core.playback.OnSeekCompleteListener;
 import com.coopsrc.oneplayer.core.playback.OnTimedMetaDataAvailableListener;
 import com.coopsrc.oneplayer.core.playback.OnTimedTextListener;
-import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
-import com.coopsrc.oneplayer.core.misc.ITrackInfo;
 import com.coopsrc.oneplayer.core.video.VideoComponent;
 import com.coopsrc.oneplayer.core.video.VideoListener;
 

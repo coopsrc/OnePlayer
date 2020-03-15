@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import com.coopsrc.oneplayer.core.text.CaptionStyleCompat;
 import com.coopsrc.oneplayer.core.text.Cue;
 import com.coopsrc.oneplayer.core.text.TextOutput;
-import com.coopsrc.oneplayer.core.utils.PlayerUtils;
 
 import java.util.ArrayList;
 import java.util.List;

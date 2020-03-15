@@ -3,13 +3,7 @@ cmake_minimum_required(VERSION 3.4.1)
 find_library(log-lib log)
 find_library(android-lib android)
 
-set(SRC_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp)
 set(JNI_LIBS_DIR ${CMAKE_SOURCE_DIR}/src/main/jniLibs)
-
-add_library(
-        mercury
-        SHARED
-        ${SRC_DIR}/mercury_player.cpp)
 
 add_library(avutil
         SHARED
@@ -67,7 +61,19 @@ set_target_properties(avdevice
         PROPERTIES IMPORTED_LOCATION
         ${JNI_LIBS_DIR}/${ANDROID_ABI}/libavdevice.so)
 
-include_directories(${JNI_LIBS_DIR}/includes)
+set(SRC_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp)
+
+set(MERCURY_SRC_DIR ${SRC_DIR}/mercury)
+set(FFMPEG_SRC_DIR ${SRC_DIR}/ffmpeg)
+
+set(MERCURY_SOURCE_FILES
+        ${MERCURY_SRC_DIR}/src/mercury_player.cpp
+        )
+
+add_library(mercury SHARED ${MERCURY_SOURCE_FILES})
+
+target_include_directories(mercury PUBLIC ${FFMPEG_SRC_DIR})
+target_include_directories(mercury PRIVATE ${MERCURY_SRC_DIR}/include)
 
 target_link_libraries(mercury
         avutil avresample swresample swscale avcodec avformat avfilter avdevice

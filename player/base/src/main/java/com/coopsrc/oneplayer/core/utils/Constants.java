@@ -1,7 +1,5 @@
 package com.coopsrc.oneplayer.core.utils;
 
-import android.os.Build;
-
 import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 
 /**

@@ -34,7 +34,7 @@ dependencies {
     api "androidx.annotation:annotation:$androidx_annotation"
     implementation "androidx.arch.core:core-runtime:$androidx_arch_core"
 
-    implementation "com.coopsrc.xandroid:common-utils:$xandroid"
+    api "com.coopsrc.xandroid:common-utils:$xandroid"
 
     compileOnly 'org.checkerframework:checker-qual:3.1.0'
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'

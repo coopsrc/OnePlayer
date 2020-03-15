@@ -11,10 +11,8 @@ import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 
-import com.coopsrc.oneplayer.core.audio.AudioListener;
 import com.coopsrc.oneplayer.core.misc.IMediaDataSource;
 import com.coopsrc.oneplayer.core.misc.ITrackInfo;
-import com.coopsrc.oneplayer.core.video.VideoListener;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

@@ -10,7 +10,6 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 
 import androidx.annotation.Nullable;
-import androidx.arch.core.executor.ArchTaskExecutor;
 
 import com.coopsrc.oneplayer.core.invoke.ListenerHolder;
 import com.coopsrc.oneplayer.core.invoke.ListenerInvocation;
@@ -19,6 +18,7 @@ import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
+import com.coopsrc.xandroid.utils.AppTaskExecutors;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
@@ -287,11 +287,11 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     protected Executor getIOThreadExecutor() {
-        return ArchTaskExecutor.getIOThreadExecutor();
+        return AppTaskExecutors.diskIO();
     }
 
     protected Executor getMainThreadExecutor() {
-        return ArchTaskExecutor.getMainThreadExecutor();
+        return AppTaskExecutors.mainThread();
     }
 
     /*

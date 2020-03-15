@@ -27,6 +27,7 @@ import com.coopsrc.oneplayer.core.PlayerLibraryInfo;
 import com.coopsrc.oneplayer.core.utils.Constants;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
 import com.coopsrc.oneplayer.core.utils.PlayerUtils;
+import com.coopsrc.xandroid.utils.AppTaskExecutors;
 
 import java.util.Formatter;
 import java.util.Locale;
@@ -654,7 +655,7 @@ public class VideoControlView extends ConstraintLayout {
         @Override
         public boolean onInfo(OnePlayer player, int what, int extra) {
             PlayerLogger.i(TAG, "onInfo: [%s, %s]", what, extra);
-            ArchTaskExecutor.getInstance().postToMainThread(new Runnable() {
+            AppTaskExecutors.getInstance().postToMainThread(new Runnable() {
                 @Override
                 public void run() {
                     switch (what) {
@@ -733,16 +734,16 @@ public class VideoControlView extends ConstraintLayout {
                     controlDispatcher.dispatchSetPlayWhenReady(player, true);
                 }
             } else if (fullScreenButton == view) {
-                PlayerLogger.i(TAG, "onClick: " + getContext());
-                if (getContext() instanceof Activity) {
-                    int orientation = getContext().getResources().getConfiguration().orientation;
-
-                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                    } else {
-                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                    }
-                }
+//                PlayerLogger.i(TAG, "onClick: " + getContext());
+//                if (getContext() instanceof Activity) {
+//                    int orientation = getContext().getResources().getConfiguration().orientation;
+//
+//                    if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+//                    } else {
+//                        ((Activity) getContext()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+//                    }
+//                }
 
             }
         }

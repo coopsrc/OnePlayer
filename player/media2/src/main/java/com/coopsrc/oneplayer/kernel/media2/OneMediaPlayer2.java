@@ -1,5 +1,6 @@
 package com.coopsrc.oneplayer.kernel.media2;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -33,6 +34,7 @@ import java.util.Map;
  * <p>
  * Date: 2019-06-21 15:27
  */
+@SuppressLint("RestrictedApi")
 public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     private static final String TAG = "OneMediaPlayer2";
 
