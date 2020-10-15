@@ -36,7 +36,7 @@ dependencies {
 
     api "com.coopsrc.xandroid:common-utils:$xandroid"
 
-    compileOnly 'org.checkerframework:checker-qual:3.1.0'
+    compileOnly 'org.checkerframework:checker-qual:3.3.0'
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'
 }
 
