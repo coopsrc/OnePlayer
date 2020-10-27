@@ -44,6 +44,6 @@ dependencies {
     implementation "androidx.leanback:leanback:$androidx_leanback"
     implementation "com.github.bumptech.glide:glide:$glide"
 
-    implementation project(':player-all')
-    implementation project(':player-ui')
+    implementation project(':player:all')
+    implementation project(':player:ui')
 }

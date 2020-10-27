@@ -31,8 +31,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api project(':player-base')
-    api project(':player-media')
+    api project(':player:base')
+    api project(':player:media')
 }
 
 

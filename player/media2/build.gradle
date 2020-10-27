@@ -32,7 +32,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api project(':player-base')
+    api project(':player:base')
 
     implementation "androidx.core:core:$androidx_core_version"
     implementation "androidx.media2:media2-common:$androidx_media2"

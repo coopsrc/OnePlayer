@@ -1,11 +1,15 @@
-def modulePrefix = ":"
-
-include modulePrefix + 'demo-mobile'
-include modulePrefix + 'demo-tv'
-
-project(modulePrefix + 'demo-mobile').projectDir = new File(rootDir, 'demos/mobile')
-project(modulePrefix + 'demo-tv').projectDir = new File(rootDir, 'demos/tv')
-
 rootProject.name = 'OnePlayer'
 
-apply from: 'core_settings.gradle'
+include ':demos:mobile'
+include ':demos:tv'
+
+include ':player:base'
+include ':player:media'
+include ':player:media2'
+include ':player:exo'
+include ':player:exo2'
+include ':player:mercury'
+include ':player:ijkmedia'
+include ':player:ui'
+include ':player:all'
+include ':player:core'

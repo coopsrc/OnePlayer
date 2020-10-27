@@ -31,7 +31,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api project(':player-base')
+    api project(':player:base')
 
     implementation "com.google.android.exoplayer:exoplayer:$exoplayer"
 }
