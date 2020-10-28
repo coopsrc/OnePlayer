@@ -70,6 +70,7 @@ set(FFMPEG_SRC_DIR ${SRC_DIR}/ffmpeg)
 
 set(MERCURY_SOURCE_FILES
         ${MERCURY_SRC_DIR}/src/mercury_player.cpp
+        ${MERCURY_SRC_DIR}/src/mercury_ffmpeg.cpp
         )
 
 add_library(mercury SHARED ${MERCURY_SOURCE_FILES})

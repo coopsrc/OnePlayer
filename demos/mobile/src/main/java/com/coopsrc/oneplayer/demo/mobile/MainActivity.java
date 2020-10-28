@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.i(TAG, "onCreate: " + OneMercuryPlayer.ffmpegVersion());
+        OneMercuryPlayer.dump();
 
         mVideoView = findViewById(R.id.player_view);
 
