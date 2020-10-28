@@ -34,10 +34,8 @@ dependencies {
     api project(':player:base')
     api project(':player:media')
     api project(':player:media2')
-    api project(':player:exo')
     api project(':player:exo2')
     api project(':player:mercury')
-    api project(':player:ijkmedia')
 }
 
 

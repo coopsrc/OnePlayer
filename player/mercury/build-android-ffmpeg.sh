@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-NDK_PATH=/c/Users/Tingkuo/AppData/Local/Android/Sdk/ndk/21.0.6113669
+NDK_PATH=$ANDROID_NDK_ROOT
 HOST_PLATFORM_WIN=windows-x86_64
-HOST_PLATFORM=$HOST_PLATFORM_WIN
-API=29
+HOST_PLATFORM_LINUX=linux-x86_64
+HOST_PLATFORM=$HOST_PLATFORM_LINUX
+API=21
 
 TOOLCHAINS="$NDK_PATH/toolchains/llvm/prebuilt/$HOST_PLATFORM"
 SYSROOT="$NDK_PATH/toolchains/llvm/prebuilt/$HOST_PLATFORM/sysroot"
@@ -30,18 +31,19 @@ build() {
     LD="$TOOLCHAINS/bin/$TARGET$API-clang"
     CROSS_PREFIX="$TOOLCHAINS/bin/arm-linux-androideabi-"
     EXTRA_CFLAGS="$CFLAG -mfloat-abi=softfp -mfpu=vfp -marm -march=$MARCH "
-    EXTRA_LDFLAGS="$LDFLAG"
-    EXTRA_OPTIONS="--enable-neon --cpu=$CPU "
+    EXTRA_LDFLAGS="$LDFLAG -march=$MARCH"
+    EXTRA_OPTIONS="--enable-neon --cpu=$CPU"
     ;;
   arm64-v8a)
     ARCH="aarch64"
+    MARCH="armv8-a"
     TARGET=$ARCH-linux-android
     CC="$TOOLCHAINS/bin/$TARGET$API-clang"
     CXX="$TOOLCHAINS/bin/$TARGET$API-clang++"
     LD="$TOOLCHAINS/bin/$TARGET$API-clang"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
-    EXTRA_CFLAGS="$CFLAG"
-    EXTRA_LDFLAGS="$LDFLAG"
+    EXTRA_CFLAGS="$CFLAG -march=$MARCH "
+    EXTRA_LDFLAGS="$LDFLAG -march=$MARCH"
     EXTRA_OPTIONS=""
     ;;
   x86)
@@ -54,7 +56,7 @@ build() {
     LD="$TOOLCHAINS/bin/$TARGET$API-clang"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
     EXTRA_CFLAGS="$CFLAG -march=$MARCH -mtune=intel -mssse3 -mfpmath=sse -m32"
-    EXTRA_LDFLAGS="$LDFLAG"
+    EXTRA_LDFLAGS="$LDFLAG -march=$MARCH"
     EXTRA_OPTIONS="--cpu=$CPU "
     ;;
   x86_64)
@@ -67,7 +69,7 @@ build() {
     LD="$TOOLCHAINS/bin/$TARGET$API-clang"
     CROSS_PREFIX="$TOOLCHAINS/bin/$TARGET-"
     EXTRA_CFLAGS="$CFLAG -march=$CPU -mtune=intel -msse4.2 -mpopcnt -m64"
-    EXTRA_LDFLAGS="$LDFLAG"
+    EXTRA_LDFLAGS="$LDFLAG -march=$MARCH"
     EXTRA_OPTIONS="--cpu=$CPU "
     ;;
   esac
@@ -92,8 +94,8 @@ build() {
 
   echo "-------- > Start config makefile with $CONFIGURATION --extra-cflags=${EXTRA_CFLAGS} --extra-ldflags=${EXTRA_LDFLAGS}"
   ./configure ${CONFIGURATION} \
-  --extra-cflags="$EXTRA_CFLAGS" \
-  --extra-ldflags="$EXTRA_LDFLAGS"
+    --extra-cflags="$EXTRA_CFLAGS" \
+    --extra-ldflags="$EXTRA_LDFLAGS"
 
   echo "-------- > Start make $APP_ABI with -j8"
   make -j10

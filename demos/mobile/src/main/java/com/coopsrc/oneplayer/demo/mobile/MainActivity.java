@@ -16,7 +16,7 @@ import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
-import com.coopsrc.oneplayer.kernel.ffmedia.OneMercuryPlayer;
+import com.coopsrc.oneplayer.kernel.mercury.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.VideoView;
 
 import java.util.HashMap;

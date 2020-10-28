@@ -8,7 +8,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 
 JNIEXPORT jstring JNICALL
-Java_com_coopsrc_oneplayer_kernel_ffmedia_OneMercuryPlayer_ffmpegVersion(JNIEnv *env, jclass type) {
+Java_com_coopsrc_oneplayer_kernel_mercury_OneMercuryPlayer_ffmpegVersion(JNIEnv *env, jclass type) {
 
     std::string version = LIBAVCODEC_IDENT;
 
