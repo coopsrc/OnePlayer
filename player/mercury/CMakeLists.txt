@@ -7,7 +7,7 @@ find_library(z-lib z)
 find_library(android-lib android)
 find_library(OpenSLES-lib OpenSLES)
 
-set(PREBUILT_DIR ${CMAKE_SOURCE_DIR}/src/main/prebuilt)
+set(PREBUILT_DIR ${CMAKE_SOURCE_DIR}/prebuilt)
 
 set(FFMPEG_PREBUILT ${PREBUILT_DIR}/ffmpeg)
 
