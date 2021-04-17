@@ -11,10 +11,10 @@ ext {
     google_android_material = "1.1.0"
     google_code_gson = "2.8.6"
 
-    glide = "4.11.0"
+    glide = "4.12.0"
     xandroid = "1.7.3"
     exoplayer = "r1.5.16"
-    exoplayer2 = "2.12.0"
+    exoplayer2 = "2.13.2"
     ijkplayer = "0.8.8"
 
     junit = "4.12"

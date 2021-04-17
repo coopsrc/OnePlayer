@@ -10,7 +10,7 @@ import com.coopsrc.oneplayer.core.OnePlayer;
  * Date: 2019-08-08 11:01
  */
 public interface AudioListener {
-    default void onAudioSessionId(OnePlayer player, int audioSessionId) {
+    default void onAudioSessionIdChanged(OnePlayer player, int audioSessionId) {
     }
 
     default void onAudioAttributesChanged(OnePlayer player, AudioAttributes audioAttributes) {

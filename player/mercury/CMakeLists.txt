@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.10.2)
 
+project("OnePlayer")
+
 find_library(log-lib log)
+find_library(z-lib z)
 find_library(android-lib android)
+find_library(OpenSLES-lib OpenSLES)
 
 set(PREBUILT_DIR ${CMAKE_SOURCE_DIR}/src/main/prebuilt)
 
@@ -13,13 +17,6 @@ add_library(avutil
 set_target_properties(avutil
         PROPERTIES IMPORTED_LOCATION
         ${FFMPEG_PREBUILT}/${ANDROID_ABI}/libavutil.so)
-
-add_library(avresample
-        SHARED
-        IMPORTED)
-set_target_properties(avresample
-        PROPERTIES IMPORTED_LOCATION
-        ${FFMPEG_PREBUILT}/${ANDROID_ABI}/libavresample.so)
 
 add_library(swresample
         SHARED
@@ -65,19 +62,17 @@ set_target_properties(avdevice
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp)
 
-set(MERCURY_SRC_DIR ${SRC_DIR}/mercury)
-set(FFMPEG_SRC_DIR ${SRC_DIR}/ffmpeg)
+set(MERCURY_SRC_DIR ${SRC_DIR}/mercury/src)
+set(MERCURY_INC_DIR ${SRC_DIR}/mercury/includes)
+set(FFMPEG_INC_DIR ${SRC_DIR}/ffmpeg)
 
-set(MERCURY_SOURCE_FILES
-        ${MERCURY_SRC_DIR}/src/mercury_player.cpp
-        ${MERCURY_SRC_DIR}/src/mercury_ffmpeg.cpp
-        )
+include_directories(mercury PUBLIC ${FFMPEG_INC_DIR})
+include_directories(mercury PRIVATE ${MERCURY_INC_DIR})
 
-add_library(mercury SHARED ${MERCURY_SOURCE_FILES})
+aux_source_directory(${MERCURY_SRC_DIR} MERCURY_SRC)
 
-target_include_directories(mercury PUBLIC ${FFMPEG_SRC_DIR})
-target_include_directories(mercury PRIVATE ${MERCURY_SRC_DIR}/include)
+add_library(mercury SHARED ${MERCURY_SRC})
 
 target_link_libraries(mercury
-        avutil avresample swresample swscale avcodec avformat avfilter avdevice
-        ${log-lib} ${android-lib})
+        avutil swresample swscale avcodec avformat avfilter avdevice
+        ${log-lib} ${android-lib} ${OpenSLES-lib} ${z-lib})

@@ -3,7 +3,8 @@
 NDK_PATH=$ANDROID_NDK_ROOT
 HOST_PLATFORM_WIN=windows-x86_64
 HOST_PLATFORM_LINUX=linux-x86_64
-HOST_PLATFORM=$HOST_PLATFORM_LINUX
+HOST_PLATFORM_DARWIN=darwin-x86_64
+HOST_PLATFORM=$HOST_PLATFORM_DARWIN
 API=21
 
 TOOLCHAINS="$NDK_PATH/toolchains/llvm/prebuilt/$HOST_PLATFORM"
@@ -97,7 +98,7 @@ build() {
     --extra-cflags="$EXTRA_CFLAGS" \
     --extra-ldflags="$EXTRA_LDFLAGS"
 
-  echo "-------- > Start make $APP_ABI with -j8"
+  echo "-------- > Start make $APP_ABI with -j10"
   make -j10
 
   echo "-------- > Start install $APP_ABI"
@@ -109,35 +110,50 @@ build() {
 build_all() {
 
   COMMON_OPTIONS="$COMMON_OPTIONS --target-os=android"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-cross-compile"
+
   COMMON_OPTIONS="$COMMON_OPTIONS --disable-static"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-shared"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocols"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-cross-compile"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-optimizations"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-debug"
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-small"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-doc"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-runtime-cpudetect"
+
   COMMON_OPTIONS="$COMMON_OPTIONS --disable-programs"
   COMMON_OPTIONS="$COMMON_OPTIONS --disable-ffmpeg"
   COMMON_OPTIONS="$COMMON_OPTIONS --disable-ffplay"
   COMMON_OPTIONS="$COMMON_OPTIONS --disable-ffprobe"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-symver"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-network"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-x86asm"
-  COMMON_OPTIONS="$COMMON_OPTIONS --disable-asm"
+
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-doc"
+
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-protocols"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=concat"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=file"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=ftp"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=hls"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=http"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=httpproxy"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=https"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=icecast"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=rtmp"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tcp"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tee"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=tls"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-protocol=udp"
+
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-pthreads"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-mediacodec"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-network"
+
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-jni"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-mediacodec"
+
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-debug"
+  COMMON_OPTIONS="$COMMON_OPTIONS --enable-optimizations"
+
   COMMON_OPTIONS="$COMMON_OPTIONS --enable-zlib"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-pic"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-avresample"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=h264"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=mpeg4"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=mjpeg"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=png"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=vorbis"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=opus"
-  COMMON_OPTIONS="$COMMON_OPTIONS --enable-decoder=flac"
+
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-symver"
+
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-asm"
+  COMMON_OPTIONS="$COMMON_OPTIONS --disable-x86asm"
 
   echo "COMMON_OPTIONS=$COMMON_OPTIONS"
   echo "PREFIX=$PREFIX"

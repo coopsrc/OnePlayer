@@ -16,7 +16,6 @@ import com.coopsrc.oneplayer.core.PlaybackPreparer;
 import com.coopsrc.oneplayer.core.misc.ITimedMetadata;
 import com.coopsrc.oneplayer.core.misc.ITimedText;
 import com.coopsrc.oneplayer.core.utils.PlayerLogger;
-import com.coopsrc.oneplayer.kernel.mercury.OneMercuryPlayer;
 import com.coopsrc.oneplayer.ui.VideoView;
 
 import java.util.HashMap;
@@ -27,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String URL = "http://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
     private static final String videoLocal = Environment.getExternalStorageDirectory() + "/Movies/Peru.mp4";
+    private static final String videoLocal01 = Environment.getExternalStorageDirectory() + "/Movies/oneplayer-demo-01.mp4";
 
     private static final String RTSP = "rtsp://mpv.cdn3.bigCDN.com:554/bigCDN/definst/mp4:bigbuckbunnyiphone_400.mp4";
 
@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String HLS = "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_16x9/bipbop_16x9_variant.m3u8";
     private static final String HLS_PL_MP4 = "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8";
+    private static final String HLS_PL_MP4_HTTP = "http://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8";
 
     private static final String HLS_FAST_8 = "https://kakazy-yun.com/20170831/dY1xSKbG/index.m3u8";
 
@@ -71,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.i(TAG, "onCreate: " + OneMercuryPlayer.ffmpegVersion());
-        OneMercuryPlayer.dump();
 
         mVideoView = findViewById(R.id.player_view);
 
@@ -80,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMedia2);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeIjk);
 //        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo);
-        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
+//        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeExo2);
+        mPlayer = PlayerFactory.createPlayer(this, PlayerFactory.TypeMercury);
 
         mPlayer.setScreenOnWhilePlaying(true);
         mPlayer.addEventListener(new OnePlayer.EventListener() {
@@ -155,9 +155,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         try {
-//            mPlayer.setDataSource(URL);
+            mPlayer.setDataSource(URL);
 
 //            mPlayer.setDataSource(this, Uri.parse(videoLocal));
+//            mPlayer.setDataSource(this, Uri.parse(videoLocal01));
 
             // rtsp
 //                mPlayer.setDataSource(RTSP);
@@ -170,12 +171,13 @@ public class MainActivity extends AppCompatActivity {
 //            mPlayer.setDataSource(SS);
 
             // hls
-//                mPlayer.setDataSource(HLS);
+//            mPlayer.setDataSource(HLS);
 //                mPlayer.setDataSource(HLS_PL_MP4);
+//            mPlayer.setDataSource(HLS_PL_MP4_HTTP);
 
             // hls live
 //            mPlayer.setDataSource(HLS_LIVE_hbws_bq);
-            mPlayer.setDataSource(HLS_FAST_8);
+//            mPlayer.setDataSource(HLS_FAST_8);
 
             // 360
 //            mPlayer.setDataSource(_360_congo);

@@ -58,7 +58,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     private SimpleExoPlayer mInternalPlayer;
-    private InternalAdapterListener mInternalAdapterListener;
+    private final InternalAdapterListener mInternalAdapterListener;
 
     private DataSource.Factory dataSourceFactory;
 
@@ -78,7 +78,7 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
     }
 
     @Override
-    protected PlayerListenerWrapper getInternalListener() {
+    protected PlayerListenerWrapper<OneExoPlayer2> getInternalListener() {
         return mInternalAdapterListener;
     }
 
@@ -507,9 +507,9 @@ public class OneExoPlayer2 extends AbsOnePlayer<SimpleExoPlayer> {
         }
 
         @Override
-        public void onAudioSessionId(int audioSessionId) {
-            PlayerLogger.i(TAG, "onAudioSessionId: %s", audioSessionId);
-            notifyOnAudioSessionId(audioSessionId);
+        public void onAudioSessionIdChanged(int audioSessionId) {
+            PlayerLogger.i(TAG, "onAudioSessionIdChanged: %s", audioSessionId);
+            notifyOnAudioSessionIdChanged(audioSessionId);
         }
 
         @Override

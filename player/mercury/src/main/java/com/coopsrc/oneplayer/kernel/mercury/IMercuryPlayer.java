@@ -14,14 +14,37 @@
  * limitations under the License.
  */
 
-//
-// Created by tingkuo on 2020-10-28 20:47.
-//
+package com.coopsrc.oneplayer.kernel.mercury;
 
-#ifndef ONEPLAYER_MERCURY_PLAYER_H
-#define ONEPLAYER_MERCURY_PLAYER_H
+import android.view.Surface;
 
+/**
+ * @author coopsrc
+ * <p>
+ * Datetime: 2021-04-01 22:50
+ */
+public interface IMercuryPlayer {
+    void setSurface(Surface surface);
 
-#define MERCURY_PLAYER_VERSION "1.0.0"
+    void setDataSource(String path);
 
-#endif //ONEPLAYER_MERCURY_PLAYER_H
+    void prepare();
+
+    void start();
+
+    void pause();
+
+    void stop();
+
+    interface OnPrepareListener {
+        void onPrepared(IMercuryPlayer player);
+    }
+
+    interface OnInfoListener {
+        void onInfo(IMercuryPlayer player, int what, int extra);
+    }
+
+    interface OnErrorListener {
+        void onError(IMercuryPlayer player, int what, int extra);
+    }
+}

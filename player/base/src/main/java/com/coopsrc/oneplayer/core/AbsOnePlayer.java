@@ -81,7 +81,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     public abstract P getInternalPlayer();
 
-    protected abstract PlayerListenerWrapper getInternalListener();
+    protected abstract PlayerListenerWrapper<? extends AbsOnePlayer<P>> getInternalListener();
 
     protected abstract void initializePlayer();
 
@@ -96,7 +96,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
 
     @Override
     public void removeEventListener(EventListener listener) {
-        for (ListenerHolder listenerHolder : mEventListenerHolders) {
+        for (ListenerHolder<EventListener> listenerHolder : mEventListenerHolders) {
             if (listenerHolder.getListener().equals(listener)) {
                 listenerHolder.release();
                 mEventListenerHolders.remove(listenerHolder);
@@ -394,11 +394,11 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     /*
      * notify AudioListener
      */
-    protected final void notifyOnAudioSessionId(int audioSessionId) {
+    protected final void notifyOnAudioSessionIdChanged(int audioSessionId) {
         notifyEventListeners(new ListenerInvocation<EventListener>() {
             @Override
             public void invokeListener(EventListener listener) {
-                listener.onAudioSessionId(AbsOnePlayer.this, audioSessionId);
+                listener.onAudioSessionIdChanged(AbsOnePlayer.this, audioSessionId);
             }
         });
     }
@@ -494,9 +494,14 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
     }
 
     private <T> void invokeAll(CopyOnWriteArrayList<ListenerHolder<T>> listenerHolders, ListenerInvocation<T> listenerInvocation) {
-        for (ListenerHolder<T> listenerHolder : listenerHolders) {
-            listenerHolder.invoke(listenerInvocation);
-        }
+        AppTaskExecutors.mainThread().execute(new Runnable() {
+            @Override
+            public void run() {
+                for (ListenerHolder<T> listenerHolder : listenerHolders) {
+                    listenerHolder.invoke(listenerInvocation);
+                }
+            }
+        });
     }
 
     private void maybeNotifySurfaceSizeChanged(int width, int height) {
@@ -507,7 +512,7 @@ public abstract class AbsOnePlayer<P> implements OnePlayer {
         }
     }
 
-    protected abstract class PlayerListenerWrapper<T extends AbsOnePlayer> implements
+    protected abstract class PlayerListenerWrapper<T extends AbsOnePlayer<P>> implements
             SurfaceHolder.Callback,
             TextureView.SurfaceTextureListener {
 

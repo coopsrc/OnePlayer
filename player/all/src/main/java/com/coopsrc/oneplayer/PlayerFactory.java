@@ -8,6 +8,7 @@ import com.coopsrc.oneplayer.core.OnePlayer;
 import com.coopsrc.oneplayer.kernel.exo2.OneExoPlayer2;
 import com.coopsrc.oneplayer.kernel.media.OneMediaPlayer;
 import com.coopsrc.oneplayer.kernel.media2.OneMediaPlayer2;
+import com.coopsrc.oneplayer.kernel.mercury.OneMercuryPlayer;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -61,7 +62,7 @@ public final class PlayerFactory {
             case TypeExo2:
                 return new OneExoPlayer2(context);
             case TypeMercury:
-                return new OneMediaPlayer(context);
+                return new OneMercuryPlayer(context);
             default:
                 return new OneMediaPlayer(context);
         }

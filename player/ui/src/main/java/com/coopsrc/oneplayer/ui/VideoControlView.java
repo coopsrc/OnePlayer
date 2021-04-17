@@ -728,11 +728,11 @@ public class VideoControlView extends ConstraintLayout {
                 } else if (player.getPlaybackState() == OnePlayer.STATE_COMPLETION) {
                     controlDispatcher.dispatchSeekTo(player, Constants.TIME_UNSET);
                 }
-                if (player.isPlaying()) {
-                    controlDispatcher.dispatchSetPlayWhenReady(player, false);
-                } else {
-                    controlDispatcher.dispatchSetPlayWhenReady(player, true);
-                }
+//                if (player.isPlaying()) {
+//                    controlDispatcher.dispatchSetPlayWhenReady(player, false);
+//                } else {
+//                    controlDispatcher.dispatchSetPlayWhenReady(player, true);
+//                }
             } else if (fullScreenButton == view) {
 //                PlayerLogger.i(TAG, "onClick: " + getContext());
 //                if (getContext() instanceof Activity) {

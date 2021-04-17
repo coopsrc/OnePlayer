@@ -57,7 +57,7 @@ public final class OneMediaPlayer extends AbsOnePlayer<MediaPlayer> {
     }
 
     @Override
-    protected PlayerListenerWrapper getInternalListener() {
+    protected PlayerListenerWrapper<OneMediaPlayer> getInternalListener() {
         return mInternalAdapterListener;
     }
 

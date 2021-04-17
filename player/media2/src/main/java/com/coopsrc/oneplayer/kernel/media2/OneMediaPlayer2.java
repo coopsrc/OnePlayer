@@ -42,9 +42,9 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
         PlayerLibraryInfo.registerModule("one.player.media2");
     }
 
-    private MediaPlayer2 mInternalPlayer;
+    private final MediaPlayer2 mInternalPlayer;
 
-    private InternalAdapterListener mInternalAdapterListener;
+    private final InternalAdapterListener mInternalAdapterListener;
 
     public OneMediaPlayer2(Context context) {
         super(context);
@@ -60,7 +60,7 @@ public final class OneMediaPlayer2 extends AbsOnePlayer<MediaPlayer2> {
     }
 
     @Override
-    protected PlayerListenerWrapper getInternalListener() {
+    protected PlayerListenerWrapper<OneMediaPlayer2> getInternalListener() {
         return mInternalAdapterListener;
     }
 
