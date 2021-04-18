@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private static final String URL = "http://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
+    private static final String URLS = "https://vfx.mtime.cn/Video/2018/02/05/mp4/180205170620160029.mp4";
     private static final String videoLocal = Environment.getExternalStorageDirectory() + "/Movies/Peru.mp4";
     private static final String videoLocal01 = Environment.getExternalStorageDirectory() + "/Movies/oneplayer-demo-01.mp4";
 
@@ -155,7 +156,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         try {
-            mPlayer.setDataSource(URL);
+//            mPlayer.setDataSource(URL);
+            mPlayer.setDataSource(URLS);
 
 //            mPlayer.setDataSource(this, Uri.parse(videoLocal));
 //            mPlayer.setDataSource(this, Uri.parse(videoLocal01));
@@ -172,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
             // hls
 //            mPlayer.setDataSource(HLS);
-//                mPlayer.setDataSource(HLS_PL_MP4);
+//            mPlayer.setDataSource(HLS_PL_MP4);
 //            mPlayer.setDataSource(HLS_PL_MP4_HTTP);
 
             // hls live

@@ -4,6 +4,7 @@ project("OnePlayer")
 
 find_library(log-lib log)
 find_library(z-lib z)
+find_library(m-lib m)
 find_library(android-lib android)
 find_library(OpenSLES-lib OpenSLES)
 
@@ -17,6 +18,13 @@ add_library(avutil
 set_target_properties(avutil
         PROPERTIES IMPORTED_LOCATION
         ${FFMPEG_PREBUILT}/${ANDROID_ABI}/libavutil.so)
+
+add_library(postproc
+        SHARED
+        IMPORTED)
+set_target_properties(postproc
+        PROPERTIES IMPORTED_LOCATION
+        ${FFMPEG_PREBUILT}/${ANDROID_ABI}/libpostproc.so)
 
 add_library(swresample
         SHARED
@@ -74,5 +82,5 @@ aux_source_directory(${MERCURY_SRC_DIR} MERCURY_SRC)
 add_library(mercury SHARED ${MERCURY_SRC})
 
 target_link_libraries(mercury
-        avutil swresample swscale avcodec avformat avfilter avdevice
-        ${log-lib} ${android-lib} ${OpenSLES-lib} ${z-lib})
+        avutil postproc swresample swscale avcodec avformat avfilter avdevice
+        ${log-lib} ${android-lib} ${OpenSLES-lib} ${z-lib} ${m-lib})
